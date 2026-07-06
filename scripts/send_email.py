@@ -10,6 +10,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
+from email.mime.application import MIMEApplication
 from email import encoders
 from pathlib import Path
 
@@ -23,6 +24,7 @@ SMTP_PASS = os.environ["SMTP_PASS"]
 TO_EMAIL  = os.environ.get("TO_EMAIL", "Sagarmurali2004@gmail.com")
 CURRENT_DAY = int(os.environ.get("CURRENT_DAY", "1"))
 INPUT_FILE = "newsletter_output.html"
+PDF_FILE = "newsletter_output.pdf"
 REQUIRED_SECTION_MARKERS = {
     "backend": "<!-- SECTION:BACKEND_COMPLETE -->",
     "ai": "<!-- SECTION:AI_COMPLETE -->",
@@ -46,7 +48,14 @@ def validate_newsletter(html_body: str) -> None:
 # ---------------------------------------------------------------------------
 # Build the email
 # ---------------------------------------------------------------------------
-def build_message(html_body: str) -> MIMEMultipart:
+def attach_file(msg: MIMEMultipart, path: Path, filename: str) -> None:
+    payload = path.read_bytes()
+    attachment = MIMEApplication(payload, _subtype=path.suffix.lstrip(".") or "octet-stream")
+    attachment.add_header("Content-Disposition", "attachment", filename=filename)
+    msg.attach(attachment)
+
+
+def build_message(html_body: str, pdf_path: Path) -> MIMEMultipart:
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"🚀 60-Day Bootcamp — Day {CURRENT_DAY}/60 | Backend + Agentic AI + System Design"
     msg["From"]    = f"Bootcamp Newsletter <{SMTP_USER}>"
@@ -67,6 +76,8 @@ def build_message(html_body: str) -> MIMEMultipart:
     # Attach plain first, HTML last (preferred by email clients)
     msg.attach(part1)
     msg.attach(part2)
+
+    attach_file(msg, pdf_path, f"bootcamp_day_{CURRENT_DAY:02d}.pdf")
 
     # Also attach the HTML file so the reader can open it in a browser
     attachment = MIMEBase("text", "html")
@@ -106,11 +117,17 @@ def main():
     if not html_path.exists():
         print(f"[email] ERROR: {INPUT_FILE} not found. Did the generation step succeed?")
         sys.exit(1)
+    pdf_path = Path(PDF_FILE)
+    if not pdf_path.exists():
+        print(f"[email] ERROR: {PDF_FILE} not found. Did the PDF generation step succeed?")
+        sys.exit(1)
 
     html_body = html_path.read_text(encoding="utf-8")
     size_kb = len(html_body.encode("utf-8")) / 1024
     print(f"[email] Loaded {INPUT_FILE} ({size_kb:.1f} KB)")
     validate_newsletter(html_body)
+    pdf_size_kb = pdf_path.stat().st_size / 1024
+    print(f"[email] Loaded {PDF_FILE} ({pdf_size_kb:.1f} KB)")
 
     # Gmail limits attachments to 25 MB and inline HTML to ~102 KB before clipping.
     # If the newsletter is very large, warn but proceed.
@@ -120,7 +137,7 @@ def main():
             "The full newsletter is still attached as an HTML file."
         )
 
-    msg = build_message(html_body)
+    msg = build_message(html_body, pdf_path)
     send_email(msg)
 
 

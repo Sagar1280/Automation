@@ -28,7 +28,9 @@ jobs:
           python-version: '3.13'
 
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          pip install requests playwright
+          python -m playwright install --with-deps chromium
 
       - name: Determine current day
         id: day
@@ -50,6 +52,9 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           CURRENT_DAY: ${{ steps.day.outputs.day }}
         run: python scripts/generate_newsletter.py
+
+      - name: Generate PDF attachment
+        run: python scripts/html_to_pdf.py
 
       - name: Send newsletter email
         env:

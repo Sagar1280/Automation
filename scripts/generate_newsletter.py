@@ -159,6 +159,16 @@ RULES:
 # Prompt builders — one per API call
 # ---------------------------------------------------------------------------
 
+SYSTEM_PROMPT += """
+
+PDF AND READING STYLE:
+- Use a professional black-and-white base: near-black body text, white cards, subtle grey borders.
+- Use color only for hierarchy: blue for Backend, green for Agentic AI, amber for System Design, red for warnings.
+- Bold important terms with <strong>...</strong>, especially definitions, trade-offs, interview keywords, and production risks.
+- Keep paragraphs short for mobile reading. Prefer compact bullets where it improves scanning.
+"""
+
+
 def prompt_backend(day, b_title, b_topics):
     b_str = _fmt(b_topics)
     prev = day - 1 if day > 1 else 1
@@ -338,18 +348,18 @@ def build_html(day, b_title, a_title, backend_html, ai_html, sysdesign_html):
     pct = round(day / TOTAL_DAYS * 100)
     progress_bar = (
         f'<div style="background:#e5e7eb;border-radius:6px;height:12px;margin:12px 0 4px 0;">'
-        f'<div style="width:{pct}%;background:linear-gradient(90deg,#2563eb,#7c3aed);height:12px;border-radius:6px;"></div>'
+        f'<div style="width:{pct}%;background:#2563eb;height:12px;border-radius:6px;"></div>'
         f'</div>'
     )
     dashboard = f"""
-    <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);color:white;border-radius:12px;padding:32px;margin-bottom:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-      <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">45-Day Backend & Agentic AI Bootcamp</div>
-      <div style="font-size:28px;font-weight:800;margin-bottom:8px;">Day {day} / {TOTAL_DAYS}</div>
+    <div style="background:#111827;color:white;border-radius:10px;padding:30px;margin-bottom:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      <div style="font-size:13px;opacity:0.82;margin-bottom:4px;">45-Day Backend & Agentic AI Bootcamp</div>
+      <div style="font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:0;">Day {day} / {TOTAL_DAYS}</div>
       {progress_bar}
       <div style="font-size:13px;opacity:0.75;margin-top:8px;">{pct}% complete</div>
       <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
-        <span style="background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 14px;font-size:13px;">Backend: {b_title}</span>
-        <span style="background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 14px;font-size:13px;">AI: {a_title}</span>
+        <span style="background:#eff6ff;color:#1e3a8a;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:700;">Backend: {b_title}</span>
+        <span style="background:#f0fdf4;color:#166534;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:700;">AI: {a_title}</span>
       </div>
     </div>
     """
@@ -360,6 +370,51 @@ def build_html(day, b_title, a_title, backend_html, ai_html, sysdesign_html):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>45-Day Bootcamp — Day {day}: {b_title}</title>
+<style>
+  body {{
+    color: #111827;
+    background: #f3f4f6;
+    line-height: 1.62;
+  }}
+  strong {{
+    color: #030712;
+    font-weight: 800;
+  }}
+  h1, h2, h3 {{
+    color: #111827;
+    letter-spacing: 0;
+  }}
+  h2 {{
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 8px;
+  }}
+  a {{
+    color: #1d4ed8;
+  }}
+  @media print {{
+    body {{
+      background: #ffffff !important;
+      padding: 0 !important;
+      font-size: 11.5pt;
+    }}
+    div {{
+      break-inside: avoid-page;
+    }}
+    pre, code {{
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+    }}
+  }}
+  @media screen and (max-width: 640px) {{
+    body {{
+      padding: 10px !important;
+      font-size: 15px;
+    }}
+    div {{
+      max-width: 100% !important;
+    }}
+  }}
+</style>
 </head>
 <body style="margin:0;padding:20px;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <div style="max-width:800px;margin:0 auto;">
