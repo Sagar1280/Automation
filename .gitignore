@@ -1,0 +1,14 @@
+# Generated newsletter output (not committed — regenerated each run)
+newsletter_output.html
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,83 @@
+name: Daily Bootcamp Newsletter
+
+on:
+  schedule:
+    # Runs every day at 7:00 AM IST (1:30 AM UTC)
+    - cron: '30 1 * * *'
+  workflow_dispatch:
+    inputs:
+      day_override:
+        description: 'Override the day number (1-30). Leave empty for auto-tracking.'
+        default: ''
+
+jobs:
+  generate-and-send:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to update day_tracker.txt
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Determine current day
+        id: day
+        run: |
+          if [ -n "${{ github.event.inputs.day_override }}" ]; then
+            DAY="${{ github.event.inputs.day_override }}"
+            echo "Using manual override: Day $DAY"
+          elif [ -f "day_tracker.txt" ]; then
+            DAY=$(cat day_tracker.txt)
+            echo "Loaded from tracker: Day $DAY"
+          else
+            DAY=1
+            echo "No tracker found, starting at Day 1"
+          fi
+          echo "day=$DAY" >> $GITHUB_OUTPUT
+
+      - name: Generate newsletter
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          CURRENT_DAY: ${{ steps.day.outputs.day }}
+        run: python scripts/generate_newsletter.py
+
+      - name: Send newsletter email
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          CURRENT_DAY: ${{ steps.day.outputs.day }}
+        run: python scripts/send_email.py
+
+      - name: Advance day tracker
+        if: success()
+        run: |
+          CURRENT=${{ steps.day.outputs.day }}
+          NEXT=$((CURRENT + 1))
+          if [ $NEXT -gt 30 ]; then
+            NEXT=1
+            echo "Cycle complete — resetting to Day 1"
+          fi
+          echo $NEXT > day_tracker.txt
+          echo "Next day will be: $NEXT"
+
+      - name: Commit updated day tracker
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add day_tracker.txt
+          git diff --staged --quiet || git commit -m "chore: advance newsletter to day $(cat day_tracker.txt)"
+          git push
