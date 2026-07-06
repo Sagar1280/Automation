@@ -89,8 +89,11 @@ AI_CURRICULUM = {
 }
 
 
-def _format_topics(topics: list[str]) -> str:
-    return "\n".join(f"  • {t}" for t in topics)
+def _format_topics(topics):
+    lines = []
+    for t in topics:
+        lines.append("  - " + t)
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
@@ -159,13 +162,20 @@ def build_user_prompt(day: int) -> str:
     nb_title, nb_topics = BACKEND_CURRICULUM.get(next_day, ("Backend Review", []))
     na_title, na_topics = AI_CURRICULUM.get(next_day, ("AI Review", []))
 
+    # Pre-compute all expressions used inside the prompt string
+    # (avoids backslash-in-f-string errors on Python < 3.12)
+    prev_day = day - 1 if day > 1 else 1
+    pct = round(day / 30 * 100)
+    nb_preview = ", ".join(nb_topics[:4]) + ("..." if len(nb_topics) > 4 else "")
+    na_preview = ", ".join(na_topics[:3]) + ("..." if len(na_topics) > 3 else "")
+
     return f"""Generate Day {day} of 30 for the 30-Day Backend & Agentic AI Bootcamp newsletter.
 
 ## NON-NEGOTIABLE RULES
 1. Generate ONLY Day {day} content. Do not explain or summarize previous days.
 2. This newsletter is one chapter of a continuous 30-day engineering book. Build on what came before.
 3. Never repeat concepts already covered in earlier days. Go forward.
-4. Increase depth every single day. Day {day} must be noticeably more advanced than Day {day - 1 if day > 1 else 1}.
+4. Increase depth every single day. Day {day} must be noticeably more advanced than Day {prev_day}.
 5. Do not add introductions, disclaimers, filler phrases, or motivational sentences. Start with content immediately.
 6. Every concept must be explained deeply, intuitively, and practically — not academically.
 7. Use the full response length. Do not truncate content early.
@@ -183,7 +193,7 @@ Salesforce, Microsoft, Amazon, Atlassian, Oracle, Adobe, JPMorgan, Walmart Globa
 ## SECTION 1 — 📈 Progress Dashboard
 
 Include:
-- Day {day} / 30 with a visual HTML/CSS progress bar ({round(day / 30 * 100)}% filled)
+- Day {day} / 30 with a visual HTML/CSS progress bar ({pct}% filled)
 - A short 2-line summary of where the 30-day journey stands at Day {day}
 - Today's backend theme: {b_title}
 - Today's AI theme: {a_title}
@@ -376,8 +386,8 @@ Do NOT include the solution.
 ## SECTION 9 — 📅 Tomorrow Preview
 
 Day {next_day} covers:
-- Backend: **{nb_title}** — {", ".join(nb_topics[:4])}{"..." if len(nb_topics) > 4 else ""}
-- AI: **{na_title}** — {", ".join(na_topics[:3])}{"..." if len(na_topics) > 3 else ""}
+- Backend: **{nb_title}** — {nb_preview}
+- AI: **{na_title}** — {na_preview}
 
 Write exactly 3 bullet points — one sentence each — telling the reader what specifically they will learn tomorrow and why it matters.
 
@@ -398,7 +408,7 @@ Output must be a single complete HTML document, beautiful and Gmail-compatible.
   * Debugging Story: background:#fdf4ff, border-left:4px solid #9333ea, padding:16px, border-radius:0 8px 8px 0
   * Key Takeaways: background:#f0fdf4, border-left:4px solid #16a34a, padding:16px, border-radius:0 8px 8px 0
 - Architecture diagrams: built with HTML/CSS divs using flexbox, borders, background colours — no external images
-- Progress bar: outer div background:#e5e7eb, inner div width:{round(day / 30 * 100)}%, background:linear-gradient(90deg,#2563eb,#7c3aed), height:12px, border-radius:6px
+- Progress bar: outer div background:#e5e7eb, inner div width:{pct}%, background:linear-gradient(90deg,#2563eb,#7c3aed), height:12px, border-radius:6px
 - Topic badges: display:inline-block, background:#eff6ff, color:#1d4ed8, border:1px solid #bfdbfe, border-radius:20px, padding:4px 12px, font-size:13px, margin:3px
 - The entire output must start with <!DOCTYPE html>
 - Do NOT use external stylesheets, external fonts, or external images
