@@ -133,9 +133,9 @@ def build_prompt(day: int) -> str:
     prev_topics = [PLAN[d]["topic"] for d in range(max(1, day-7), day)]
     prev_str = ", ".join(prev_topics) if prev_topics else "None"
 
-    return f"""You are an expert competitive programming coach and senior software engineer at a FAANG company.
+    return f"""You are an expert competitive programming coach.
 
-Generate a daily LeetCode practice email for Day {day} of 90.
+Generate a daily coding practice email for Day {day} of 90.
 
 ## TODAY'S FOCUS
 - Topic: {topic}
@@ -143,74 +143,68 @@ Generate a daily LeetCode practice email for Day {day} of 90.
 - Day: {day} / 90
 - Recent topics covered: {prev_str}
 
-## RULES
+## STRICT RULES — READ CAREFULLY
 1. Select exactly 5 questions: 2 Easy, 2 Medium, 1 Hard
 2. ALL questions must be FREE on LeetCode (no LeetCode Premium required)
-3. Questions must be REAL LeetCode problems with correct problem numbers and URLs
+3. Questions must be REAL, well-known problems with correct problem numbers and URLs
 4. Questions must be relevant to today's topic: {topic}
-5. Also include 1-2 relevant GFG (GeeksforGeeks) article links per question where applicable
-6. Difficulty must progress — Day {day} should be harder than Day {day-5 if day > 5 else 1}
-7. Do NOT repeat problems from recent days
-8. For each question provide a complete, thorough breakdown
+5. DO NOT include any solutions, code, hints, or approaches — questions only
+6. DO NOT include time/space complexity — questions only
+7. DO NOT include "how to solve" guidance of any kind
+8. Include both a LeetCode link AND a GFG link for each question where available
+9. Difficulty must match the phase: {phase}
+10. Do NOT repeat problems from recent days
 
-## FOR EACH OF THE 5 QUESTIONS, INCLUDE ALL OF THE FOLLOWING:
-
-### Question Card must contain:
-- Problem title and number
-- Difficulty badge (Easy/Medium/Hard) with color coding
-- LeetCode URL (format: https://leetcode.com/problems/problem-slug/)
-- GFG URL if a relevant article exists (format: https://www.geeksforgeeks.org/...)
-- Problem statement (brief, clear)
-- Examples (2 examples with input/output/explanation)
-- Constraints
-- Intuition — explain the "aha moment" in plain English
-- Approach — step-by-step algorithm
-- Time Complexity with explanation
-- Space Complexity with explanation
-- Java solution (clean, production-quality, with comments)
-- Python solution (clean, Pythonic, with comments)
-- Common mistakes beginners make
-- Follow-up questions interviewers ask
-- Similar problems to practice next
+## FOR EACH OF THE 5 QUESTIONS INCLUDE ONLY:
+- Question number (1–5) and difficulty label
+- Problem title and LeetCode problem number
+- A ONE sentence description of what the problem asks (no hints, no approach)
+- LeetCode link (free tier): https://leetcode.com/problems/problem-slug/
+- GFG link if available: https://www.geeksforgeeks.org/...
+- Nothing else — no solutions, no code, no hints
 
 ## EMAIL STRUCTURE
 
-### Header
-- "Day {day}/90 — {topic}" 
+### Header section:
+- Title: "Day {day}/90 — {topic}"
 - Phase badge: {phase}
-- Progress bar showing {day}/90
-- Today's topic overview (2-3 sentences on WHY this topic matters for interviews)
-- Estimated solve time
+- Progress bar (HTML/CSS) showing {day} out of 90
+- One paragraph (2–3 sentences) on WHY this topic is important for interviews — concepts only, no solutions
+- Estimated time to solve all 5: X–Y minutes
 
-### Question Cards (5 total — 2 Easy, 2 Medium, 1 Hard)
-Full breakdown as described above for each question.
+### 5 Question Cards
+One card per question, clean and minimal. Each card contains ONLY:
+- Question number + difficulty badge
+- Problem name + LeetCode number
+- One-sentence problem description (what it asks, not how to solve)
+- "Solve on LeetCode" button link
+- "Read on GFG" button link (if available)
 
-### Daily Tips Section
-- 1 interview tip specific to today's topic
-- 1 common pattern to recognize
-- 1 time/space optimization trick
+### Daily Tip section (3 items):
+- 1 pattern recognition tip for today's topic (what to look for, NOT how to solve)
+- 1 common interview mistake to avoid on this topic
+- 1 question to ask yourself before starting any problem of this type
 
-### Tomorrow Preview
+### Tomorrow Preview:
 - Topic for Day {day+1 if day < 90 else 1}
-- What to expect
+- One sentence on what to expect
 
 ## FORMATTING REQUIREMENTS
 Output must be a complete, beautiful HTML document suitable for Gmail.
 - Use inline CSS only (Gmail strips <style> tags)
-- Max width 800px, centered
-- Card-based layout with box-shadows: box-shadow: 0 2px 8px rgba(0,0,0,0.1)
-- Difficulty badges: Easy=green(#00b8a3), Medium=orange(#ffa116), Hard=red(#ff375f)
-- Code blocks: background:#1e1e1e, color:#d4d4d4, font-family:monospace, padding:16px, border-radius:8px
-- Progress bar: HTML div with gradient
-- Color scheme: professional dark accents with white cards
-- LeetCode links styled as: background:#ffa116, color:white, padding:6px 12px, border-radius:4px, text-decoration:none
-- GFG links styled as: background:#2f8d46, color:white, padding:6px 12px, border-radius:4px, text-decoration:none
-- Section headers with left colored border (4px solid)
+- Max width 800px, centered, background #f5f5f5
+- Each question in a white card: background:white, border-radius:12px, padding:24px, margin-bottom:16px, box-shadow:0 2px 8px rgba(0,0,0,0.08)
+- Difficulty badges inline: Easy=background:#e6f7f4,color:#00b8a3 | Medium=background:#fff4e5,color:#ffa116 | Hard=background:#fff0f0,color:#ff375f — all bold, border-radius:4px, padding:3px 10px
+- "Solve on LeetCode" button: background:#ffa116, color:white, padding:8px 16px, border-radius:6px, text-decoration:none, font-weight:bold, display:inline-block, margin-right:8px
+- "Read on GFG" button: background:#2f8d46, color:white, padding:8px 16px, border-radius:6px, text-decoration:none, font-weight:bold, display:inline-block
+- Progress bar: div with background:#e0e0e0, inner div width:{round(day/90*100)}%, background:linear-gradient(90deg,#ffa116,#ff375f), height:10px, border-radius:5px
+- Header card: background:linear-gradient(135deg,#1a1a2e,#16213e), color:white, padding:32px, border-radius:12px, margin-bottom:24px
+- Section headers: font-size:18px, font-weight:bold, border-left:4px solid #ffa116, padding-left:12px, margin:24px 0 12px 0
 - The output must be a SINGLE complete HTML document starting with <!DOCTYPE html>
 - Do NOT use external images or external CSS files
-- Inline all styles
+- Inline ALL styles on every element
 
-The result should look like a premium coding bootcamp email — professional, dense with knowledge, and immediately actionable."""
+The email should feel clean, motivating, and distraction-free — like a daily challenge card, not a tutorial."""
 
 
 def call_deepseek(day: int, max_retries: int = 3) -> str:
