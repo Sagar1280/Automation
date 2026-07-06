@@ -1,4 +1,4 @@
-# 30-Day Backend & Agentic AI Bootcamp — Newsletter Automation
+# 60-Day Backend, Agentic AI & System Design Bootcamp — Newsletter Automation
 
 Automatically generates and emails a premium daily engineering newsletter using the **DeepSeek API**, delivered via **GitHub Actions**.
 
@@ -73,9 +73,9 @@ Runs automatically at **7:00 AM IST** every day (1:30 AM UTC via cron).
 
 ## Day Tracking
 
-- `day_tracker.txt` stores the current day number (1–30)
+- `day_tracker.txt` stores the current day number (1–60)
 - After each successful run, the bot auto-increments and commits it
-- After Day 30, it resets to Day 1 automatically
+- After Day 60, it resets to Day 1 automatically
 - You can manually override the day using the `day_override` input on workflow_dispatch
 
 ---

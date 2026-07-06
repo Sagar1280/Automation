@@ -20,6 +20,11 @@ API_KEY          = os.environ["DEEPSEEK_API_KEY"]
 CURRENT_DAY      = int(os.environ.get("CURRENT_DAY", "1"))
 OUTPUT_FILE      = "newsletter_output.html"
 TOTAL_DAYS       = 45
+SECTION_MARKERS  = {
+    "backend": "<!-- SECTION:BACKEND_COMPLETE -->",
+    "ai": "<!-- SECTION:AI_COMPLETE -->",
+    "sysdesign": "<!-- SECTION:SYSDESIGN_COMPLETE -->",
+}
 
 # ---------------------------------------------------------------------------
 # 45-Day Curriculum
@@ -319,6 +324,20 @@ def strip_fences(text):
     return text.strip()
 
 
+def require_section(label, html):
+    html = strip_fences(html)
+    if not html:
+        raise RuntimeError(f"[{label}] DeepSeek returned an empty response.")
+    print(f"[{label}] Section ready ({len(html.encode('utf-8')) / 1024:.1f} KB)")
+    return f"{SECTION_MARKERS[label]}\n{html}"
+
+
+def validate_final_html(html):
+    missing = [label for label, marker in SECTION_MARKERS.items() if marker not in html]
+    if missing:
+        raise RuntimeError(f"[generate] Missing generated section(s): {', '.join(missing)}")
+
+
 # ---------------------------------------------------------------------------
 # HTML assembly
 # ---------------------------------------------------------------------------
@@ -378,16 +397,29 @@ def main():
     print(f"[generate] Day {day} — Backend: {b_title} | AI: {a_title}")
     print("[generate] Making 3 API calls...")
 
-    backend_raw   = call_deepseek(prompt_backend(day, b_title, b_topics),       "backend")
-    ai_raw        = call_deepseek(prompt_ai(day, a_title, a_topics),             "ai")
-    sysdesign_raw = call_deepseek(prompt_system_design(day, b_title),            "sysdesign")
+    sections = {
+        "backend": require_section(
+            "backend",
+            call_deepseek(prompt_backend(day, b_title, b_topics), "backend"),
+        ),
+        "ai": require_section(
+            "ai",
+            call_deepseek(prompt_ai(day, a_title, a_topics), "ai"),
+        ),
+        "sysdesign": require_section(
+            "sysdesign",
+            call_deepseek(prompt_system_design(day, b_title), "sysdesign"),
+        ),
+    }
+    print("[generate] All 3 API calls completed. Building final newsletter...")
 
     html = build_html(
         day, b_title, a_title,
-        strip_fences(backend_raw),
-        strip_fences(ai_raw),
-        strip_fences(sysdesign_raw),
+        sections["backend"],
+        sections["ai"],
+        sections["sysdesign"],
     )
+    validate_final_html(html)
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(html)

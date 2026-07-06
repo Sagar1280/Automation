@@ -23,19 +23,38 @@ SMTP_PASS = os.environ["SMTP_PASS"]
 TO_EMAIL  = os.environ.get("TO_EMAIL", "Sagarmurali2004@gmail.com")
 CURRENT_DAY = int(os.environ.get("CURRENT_DAY", "1"))
 INPUT_FILE = "newsletter_output.html"
+REQUIRED_SECTION_MARKERS = {
+    "backend": "<!-- SECTION:BACKEND_COMPLETE -->",
+    "ai": "<!-- SECTION:AI_COMPLETE -->",
+    "sysdesign": "<!-- SECTION:SYSDESIGN_COMPLETE -->",
+}
+
+
+def validate_newsletter(html_body: str) -> None:
+    missing = [
+        label
+        for label, marker in REQUIRED_SECTION_MARKERS.items()
+        if marker not in html_body
+    ]
+    if missing:
+        print(
+            "[email] ERROR: newsletter_output.html is incomplete. "
+            f"Missing section(s): {', '.join(missing)}"
+        )
+        sys.exit(1)
 
 # ---------------------------------------------------------------------------
 # Build the email
 # ---------------------------------------------------------------------------
 def build_message(html_body: str) -> MIMEMultipart:
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"🚀 30-Day Bootcamp — Day {CURRENT_DAY}/30 | Backend & Agentic AI"
+    msg["Subject"] = f"🚀 60-Day Bootcamp — Day {CURRENT_DAY}/60 | Backend + Agentic AI + System Design"
     msg["From"]    = f"Bootcamp Newsletter <{SMTP_USER}>"
     msg["To"]      = TO_EMAIL
 
     # Plain-text fallback
     plain_text = (
-        f"Day {CURRENT_DAY}/30 — 30-Day Backend & Agentic AI Bootcamp\n\n"
+        f"Day {CURRENT_DAY}/60 — 60-Day Backend + Agentic AI + System Design Bootcamp\n\n"
         "Your HTML email client is required to view this newsletter.\n"
         "Please open this email in a client that supports HTML.\n\n"
         "Topics today include Backend Engineering, Agentic AI, System Design, "
@@ -91,6 +110,7 @@ def main():
     html_body = html_path.read_text(encoding="utf-8")
     size_kb = len(html_body.encode("utf-8")) / 1024
     print(f"[email] Loaded {INPUT_FILE} ({size_kb:.1f} KB)")
+    validate_newsletter(html_body)
 
     # Gmail limits attachments to 25 MB and inline HTML to ~102 KB before clipping.
     # If the newsletter is very large, warn but proceed.

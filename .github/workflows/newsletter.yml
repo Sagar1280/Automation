@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       day_override:
-        description: 'Override the day number (1-30). Leave empty for auto-tracking.'
+        description: 'Override the day number (1-60). Leave empty for auto-tracking.'
         default: ''
 
 jobs:
@@ -66,7 +66,7 @@ jobs:
         run: |
           CURRENT=${{ steps.day.outputs.day }}
           NEXT=$((CURRENT + 1))
-          if [ $NEXT -gt 30 ]; then
+          if [ $NEXT -gt 60 ]; then
             NEXT=1
             echo "Cycle complete — resetting to Day 1"
           fi
