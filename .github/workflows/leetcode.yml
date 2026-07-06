@@ -80,10 +80,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add leetcode_day_tracker.txt
-          git diff --staged --quiet || git commit -m "chore: advance leetcode tracker to day $(cat leetcode_day_tracker.txt)"
-          # Retry push up to 3 times in case another workflow pushed concurrently
-          for i in 1 2 3; do
-            git pull --rebase origin main && git push && break
-            echo "Push attempt $i failed, retrying in 5s..."
-            sleep 5
+          git diff --staged --quiet && echo "Nothing to commit" && exit 0
+          git commit -m "chore: advance leetcode tracker to day $(cat leetcode_day_tracker.txt)"
+          # Retry loop: fetch + rebase if push is rejected by a concurrent workflow
+          for i in 1 2 3 4 5; do
+            git push && echo "Push succeeded on attempt $i" && exit 0
+            echo "Push attempt $i rejected, fetching and rebasing..."
+            git fetch origin main
+            git rebase origin/main
+            sleep $((i * 3))
           done
+          echo "All push attempts failed"
+          exit 1
