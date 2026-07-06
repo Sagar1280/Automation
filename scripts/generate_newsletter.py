@@ -254,18 +254,10 @@ SYSTEM DESIGN — cover all of the following in order, in full detail:
 15. Trade-offs — what was sacrificed? What would you do differently with more time?
 16. 5 follow-up interview questions with the direction a strong answer would take
 
-BACKEND CODING CHALLENGE:
-One Java implementation problem tied to {b_title}.
-- Problem statement (clear, production-relevant)
-- Constraints
-- Expected input and output examples
-- Java starter skeleton with meaningful comments
-- What concept this tests and why it matters in SDE-2 interviews
-Do NOT include the solution.
 
-Wrap each part (System Design and Coding Challenge) in its own white card div with inline styles.
-Use bold section headers: "System Design — Day {day}" and "Backend Coding Challenge — Day {day}".
-Depth should be noticeably harder than Day {prev}."""
+Wrap the part (System Design) in its own white card div with inline styles.
+Use bold section headers: "System Design — Day {day} ".
+Depth should be SLightly harder (in the sense from junior dev style to senior dev style) than Day {prev}."""
 
 # ---------------------------------------------------------------------------
 # API call helper
