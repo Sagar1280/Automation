@@ -1,12 +1,14 @@
 """
 generate_newsletter.py
-Calls the DeepSeek API with the master prompt for Day X and saves
-the resulting HTML newsletter to newsletter_output.html
+45-day Backend & Agentic AI Bootcamp newsletter.
+Uses 3 split DeepSeek API calls to avoid truncation:
+  Call 1 — Backend Engineering (3 topics, full depth)
+  Call 2 — Agentic AI (2 topics, full depth)
+  Call 3 — System Design + Backend Coding Challenge
+All 3 results are merged into one HTML file.
 """
 
 import os
-import sys
-import json
 import time
 import requests
 
@@ -14,385 +16,266 @@ import requests
 # Config
 # ---------------------------------------------------------------------------
 DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
-API_KEY = os.environ["DEEPSEEK_API_KEY"]
-CURRENT_DAY = int(os.environ.get("CURRENT_DAY", "1"))
-OUTPUT_FILE = "newsletter_output.html"
+API_KEY          = os.environ["DEEPSEEK_API_KEY"]
+CURRENT_DAY      = int(os.environ.get("CURRENT_DAY", "1"))
+OUTPUT_FILE      = "newsletter_output.html"
+TOTAL_DAYS       = 45
 
 # ---------------------------------------------------------------------------
-# Full 30-day curriculum — Backend and AI topics per day
+# 45-Day Curriculum
 # ---------------------------------------------------------------------------
 
-BACKEND_CURRICULUM = {
-    1:  ("JVM Fundamentals",          ["Why JVM Exists", "JVM Architecture", "Class Loading Process", "Bytecode Execution", "JIT Compiler", "JVM Memory Overview"]),
-    2:  ("Memory Management",         ["Heap", "Stack", "Metaspace", "Object Creation", "String Pool", "Memory Leaks", "OutOfMemoryError"]),
-    3:  ("Garbage Collection",        ["Why GC Exists", "Mark & Sweep", "Generational GC", "G1 GC", "ZGC Overview", "GC Tuning Basics"]),
-    4:  ("Collections Framework",     ["ArrayList", "LinkedList", "HashMap Internals", "HashSet", "TreeMap", "ConcurrentHashMap", "Time Complexities"]),
-    5:  ("Java Concurrency",          ["Threads", "Thread Lifecycle", "Synchronization", "Locks", "ExecutorService", "Thread Pools", "CompletableFuture"]),
-    6:  ("Spring Framework Fundamentals", ["Spring Architecture", "IoC", "Dependency Injection", "Bean Lifecycle", "Spring Context"]),
-    7:  ("Spring Boot",               ["Auto Configuration", "Starters", "Configuration", "Profiles", "Spring Boot Project Structure"]),
-    8:  ("REST APIs",                 ["REST Principles", "HTTP Methods", "Controllers", "Validation", "Exception Handling", "API Design Best Practices"]),
-    9:  ("Spring Data JPA & Hibernate", ["ORM", "Entity Lifecycle", "Relationships", "Lazy vs Eager Loading", "Cascade Types", "N+1 Problem"]),
-    10: ("Transactions & Testing",    ["ACID", "@Transactional", "Propagation", "Isolation Levels", "Unit Testing", "Integration Testing"]),
-    11: ("SQL Fundamentals",          ["Query Execution", "Joins", "Aggregations", "Normalization", "EXPLAIN"]),
-    12: ("Database Optimization",     ["Indexes", "Composite Indexes", "Covering Indexes", "Query Optimization", "Connection Pooling"]),
-    13: ("Redis",                     ["Why Redis", "Data Structures", "Caching", "TTL", "Cache Aside", "Write Through"]),
-    14: ("Kafka",                     ["Architecture", "Producers", "Consumers", "Partitions", "Consumer Groups", "Offsets"]),
-    15: ("RabbitMQ & Messaging",      ["Queues", "Exchanges", "Routing", "Dead Letter Queues", "Retry Strategies"]),
-    16: ("Docker",                    ["Containers", "Images", "Dockerfile", "Layers", "Docker Compose"]),
-    17: ("Kubernetes",                ["Pods", "Deployments", "Services", "ConfigMaps", "Secrets", "Scaling"]),
-    18: ("AWS & Cloud",               ["EC2", "S3", "IAM", "RDS", "ECS", "Cloud Architecture Basics"]),
-    19: ("CI/CD & DevOps",            ["GitHub Actions", "Jenkins", "Pipelines", "Rolling Deployment", "Blue Green", "Canary Deployment"]),
-    20: ("Monitoring & Observability", ["Logging", "Metrics", "Tracing", "Prometheus", "Grafana", "OpenTelemetry"]),
-    21: ("Distributed Systems Basics", ["CAP Theorem", "Consistency Models", "Replication", "Partitioning"]),
-    22: ("Scalability",               ["Sharding", "Load Balancing", "API Gateway", "Reverse Proxy", "CDN"]),
-    23: ("Reliability",               ["Circuit Breakers", "Retry", "Timeouts", "Idempotency", "Bulkhead Pattern"]),
-    24: ("System Design",             ["URL Shortener", "Rate Limiter", "Notification Service", "File Storage", "Chat System"]),
-    25: ("Advanced Backend",          ["Event Driven Architecture", "Saga Pattern", "CQRS", "Event Sourcing", "Microservices Communication"]),
-    26: ("Backend Security",          ["Authentication", "Authorization", "JWT", "OAuth2", "RBAC", "Session Management"]),
-    27: ("Secure Coding",             ["SQL Injection", "XSS", "CSRF", "Input Validation", "Secure Password Storage"]),
-    28: ("JVM Performance",           ["Profiling", "Heap Dump", "Thread Dump", "JFR", "VisualVM", "Performance Tuning"]),
-    29: ("Production Engineering",    ["Debugging Production Issues", "Root Cause Analysis", "Performance Bottlenecks", "Incident Response", "Postmortems"]),
-    30: ("SDE-2 Interview Masterclass", ["End-to-End Backend Design", "System Design Walkthrough", "Java Interview Revision", "Spring Boot Revision", "SQL Revision", "Redis Revision", "Kafka Revision", "Production Scenarios", "Mock Interview Questions"]),
+BACKEND = {
+    1:  ("JVM Architecture",               ["JVM Architecture & Components", "Class Loading Mechanism", "Bytecode & JIT Compilation"]),
+    2:  ("JVM Memory Model",               ["Heap Memory & Object Allocation", "Stack Memory & Stack Frames", "Metaspace, String Pool & OutOfMemoryError"]),
+    3:  ("Garbage Collection",             ["Mark & Sweep & Generational GC", "G1 GC Internals & Region Layout", "GC Tuning, ZGC & Choosing a Collector"]),
+    4:  ("Java Collections",               ["HashMap: Hashing, Buckets & Resize", "ConcurrentHashMap & Thread Safety", "ArrayList vs LinkedList & Time Complexities"]),
+    5:  ("Java Concurrency I",             ["Thread Lifecycle & Synchronization", "ReentrantLock, ReadWriteLock & Conditions", "ExecutorService, ThreadPoolExecutor & Sizing"]),
+    6:  ("Java Concurrency II",            ["CompletableFuture & Async Chains", "volatile, happens-before & Memory Visibility", "Deadlocks, Livelocks & Race Conditions"]),
+    7:  ("Spring IoC & DI",                ["IoC Container & ApplicationContext", "Dependency Injection: Constructor vs Setter vs Field", "Bean Lifecycle, Scopes & Circular Dependencies"]),
+    8:  ("Spring Boot",                    ["Auto Configuration & @Conditional", "Spring Boot Startup Sequence", "Profiles, Properties & Externalized Configuration"]),
+    9:  ("REST APIs with Spring",          ["REST Controllers & Request Mapping", "Request Validation with @Valid & Custom Validators", "Global Exception Handling with @ControllerAdvice"]),
+    10: ("Spring Data JPA I",              ["ORM Concepts & JPA Entity Lifecycle", "Relationships: OneToMany, ManyToMany, ManyToOne", "Lazy vs Eager Loading & Proxy Behaviour"]),
+    11: ("Spring Data JPA II",             ["N+1 Problem: Root Cause & Fixes", "JPQL, Named Queries & Native SQL", "Cascade Types, Orphan Removal & Pessimistic Locking"]),
+    12: ("Transactions & Testing",         ["ACID Properties & Isolation Levels", "@Transactional: Propagation, Rollback & Common Pitfalls", "Unit Testing with Mockito & Integration Testing with Spring"]),
+    13: ("SQL Fundamentals",               ["Query Execution Internals & Parsing", "JOINs: INNER, LEFT, RIGHT, FULL & Performance Impact", "Aggregations, GROUP BY, HAVING & Subqueries"]),
+    14: ("Database Indexing",              ["B-Tree Index Internals & How Lookups Work", "Composite Indexes, Covering Indexes & Index Selectivity", "EXPLAIN Plan & Query Optimization Workflow"]),
+    15: ("Advanced SQL",                   ["Window Functions: ROW_NUMBER, RANK, LAG, LEAD", "CTEs & Recursive CTEs", "Normalization vs Denormalization Trade-offs"]),
+    16: ("Redis",                          ["Redis Data Structures & Use Cases", "Cache-Aside, Write-Through & Write-Behind", "TTL, Eviction Policies & Redis Persistence"]),
+    17: ("Database Scaling",               ["Connection Pooling with HikariCP", "Read Replicas & Read-Write Splitting", "Horizontal Sharding: Range, Hash & Directory-Based"]),
+    18: ("Kafka I",                        ["Kafka Architecture: Brokers, Topics, Partitions", "Producers, Consumers & Consumer Groups", "Offsets, Replication Factor & Partition Leadership"]),
+    19: ("Kafka II",                       ["Offset Commit Strategies & At-Least-Once Delivery", "Kafka Topic Design, Retention & Compaction", "Kafka vs RabbitMQ: When to Use Which"]),
+    20: ("RabbitMQ & Messaging",           ["Exchanges, Queues & Routing Keys", "Dead Letter Queues & Retry Strategies", "Message Acknowledgement, Durability & Persistence"]),
+    21: ("Docker",                         ["Containers vs VMs: How Docker Works", "Dockerfile, Image Layers & Build Cache Optimization", "Docker Compose for Multi-Container Apps"]),
+    22: ("Kubernetes",                     ["Kubernetes Architecture & Control Plane", "Deployments, ReplicaSets, Services & Ingress", "ConfigMaps, Secrets, Health Probes & HPA"]),
+    23: ("AWS Core Services",              ["IAM: Users, Roles, Policies & Least Privilege", "EC2, ECS & Container Deployment on AWS", "RDS, S3 & Core Cloud Architecture Patterns"]),
+    24: ("CI/CD",                          ["CI/CD Pipeline Design with GitHub Actions", "Rolling, Blue-Green & Canary Deployment Strategies", "Docker Build, Push & Deploy in Pipelines"]),
+    25: ("Observability",                  ["Structured Logging: Format, Levels & Correlation IDs", "Metrics with Prometheus & Grafana Dashboards", "Distributed Tracing with OpenTelemetry"]),
+    26: ("Distributed Systems I",          ["CAP Theorem in Real Production Systems", "Consistency Models: Strong, Eventual, Causal", "Database Replication: Sync vs Async Trade-offs"]),
+    27: ("Distributed Systems II",         ["Load Balancing Algorithms & API Gateway", "CDN, Reverse Proxy & Edge Caching", "Service Discovery & Consistent Hashing"]),
+    28: ("Reliability Patterns",           ["Circuit Breaker with Resilience4j", "Retry, Timeout, Fallback & Bulkhead", "Idempotency: Design & Implementation"]),
+    29: ("Event-Driven Architecture",      ["Event-Driven vs Request-Driven Architecture", "CQRS: Separating Read & Write Models", "Saga Pattern: Choreography vs Orchestration"]),
+    30: ("Microservices",                  ["Microservices vs Monolith: Real Trade-offs", "Inter-Service Communication: REST, gRPC, Events", "API Gateway & Backend for Frontend Pattern"]),
+    31: ("Backend Security I",             ["Session vs Token-Based Authentication", "JWT: Structure, Signing, Validation & Expiry", "OAuth2 Flows & Spring Security Integration"]),
+    32: ("Backend Security II",            ["Role-Based Access Control (RBAC)", "Securing REST APIs: Rate Limiting, CORS, Headers", "SQL Injection, XSS & CSRF Prevention"]),
+    33: ("Secure Coding",                  ["Input Validation & Output Encoding", "Secure Password Storage: BCrypt & Argon2", "Secrets Management: Vault & AWS Secrets Manager"]),
+    34: ("JVM Performance",                ["JVM Profiling with JFR & async-profiler", "Heap Dump Analysis & Memory Leak Detection", "Thread Dump Analysis & Deadlock Detection"]),
+    35: ("API & Query Performance",        ["HTTP Caching: ETags, Cache-Control & CDN", "Database Query Optimization: Indexes & Batch Queries", "Pagination: Offset vs Cursor-Based"]),
+    36: ("Production Debugging",           ["Root Cause Analysis Framework", "Debugging High Latency in Production", "Reading Logs & Metrics at Scale"]),
+    37: ("Incident Response",              ["Incident Detection, Severity Classification & Escalation", "On-Call Runbooks & Troubleshooting Playbooks", "Postmortem Writing & Blameless Culture"]),
+    38: ("Advanced Backend Patterns",      ["Rate Limiting: Token Bucket & Leaky Bucket", "Distributed Locking with Redis", "Outbox Pattern for Reliable Event Publishing"]),
+    39: ("System Design I",                ["Design a URL Shortener end-to-end", "Design a Notification Service end-to-end", "Design a File Storage Service end-to-end"]),
+    40: ("System Design II",               ["Design a Rate Limiter end-to-end", "Design a Chat System end-to-end", "Design a News Feed & Timeline System end-to-end"]),
+    41: ("Java & Spring Interview Prep",   ["Top 20 Java Internals Interview Q&A", "Top 20 Spring Boot & JPA Interview Q&A", "Top 10 Concurrency & Transaction Interview Q&A"]),
+    42: ("Data & Messaging Interview Prep",["Top 20 SQL, Index & Database Interview Q&A", "Top 15 Redis & Caching Interview Q&A", "Top 15 Kafka & Messaging Interview Q&A"]),
+    43: ("Distributed Systems Interview",  ["Top 20 Distributed Systems Interview Q&A", "Top 15 Microservices & API Design Interview Q&A", "Top 10 Security Interview Q&A"]),
+    44: ("System Design Interview Mastery",["How to Structure Any System Design Answer", "10 Most Common System Design Mistakes", "15 Must-Know System Design Patterns with Examples"]),
+    45: ("Final SDE-2 Mock",               ["Full Mock: Design a Real-Time Analytics System", "Full Mock: Debug a Production Incident Scenario", "Rapid-Fire Revision: All 45 Days Key Concepts"]),
 }
 
-AI_CURRICULUM = {
-    1:  ("Introduction to LLMs",           ["Evolution of AI", "Generative AI vs Traditional ML", "How LLMs Work", "Tokens", "Context Window", "LLM Capabilities & Limitations"]),
-    2:  ("Transformer Architecture",       ["Why Transformers Replaced RNNs", "Encoder vs Decoder", "Self-Attention", "Multi-Head Attention", "Positional Encoding", "Feed Forward Networks"]),
-    3:  ("Tokens & Embeddings",            ["Tokenization", "BPE", "WordPiece", "SentencePiece", "Embeddings", "Vector Similarity", "Cosine Similarity"]),
-    4:  ("Prompt Engineering",             ["Prompt Structure", "Zero-shot", "One-shot", "Few-shot", "Chain of Thought", "Prompt Templates", "Common Prompting Mistakes"]),
-    5:  ("LLM Inference",                  ["Inference Pipeline", "Temperature", "Top-K", "Top-P", "Max Tokens", "Streaming", "Latency Fundamentals"]),
-    6:  ("Vector Databases",               ["Why Vector Databases Exist", "ANN Search", "HNSW", "FAISS", "Pinecone", "Weaviate", "ChromaDB"]),
-    7:  ("Embedding Models",               ["OpenAI Embeddings", "BGE", "E5", "VoyageAI", "Choosing the Right Embedding Model", "Embedding Evaluation"]),
-    8:  ("Document Chunking",              ["Fixed Chunking", "Recursive Chunking", "Semantic Chunking", "Sliding Window", "Parent-Child Chunking", "Metadata Strategies"]),
-    9:  ("Retrieval Augmented Generation (RAG)", ["Why RAG Exists", "Complete RAG Pipeline", "Retrieval Flow", "Context Injection", "Hallucination Reduction", "Production Architecture"]),
-    10: ("Semantic Search",                ["Similarity Search", "Hybrid Search", "Metadata Filtering", "Query Expansion", "Search Optimization"]),
-    11: ("Advanced RAG",                   ["Multi-step RAG", "Recursive Retrieval", "Context Compression", "Query Routing", "Agentic RAG"]),
-    12: ("Hybrid Search & Reranking",      ["BM25", "Dense Retrieval", "Hybrid Retrieval", "Cross Encoder Rerankers", "Reciprocal Rank Fusion"]),
-    13: ("Tool Calling",                   ["Why Tool Calling Exists", "Function Calling", "Structured Outputs", "API Integration", "External Tools", "Best Practices"]),
-    14: ("MCP (Model Context Protocol)",   ["MCP Fundamentals", "MCP Architecture", "Resources", "Tools", "Prompts", "Building MCP Servers"]),
-    15: ("AI Application Architecture",    ["Chatbots", "AI Assistants", "Enterprise AI Systems", "Workflow Integration", "Common Backend Patterns"]),
-    16: ("AI Agents",                      ["What is an Agent", "Agent Loop", "Perception", "Reasoning", "Planning", "Action"]),
-    17: ("Agent Memory",                   ["Short-Term Memory", "Long-Term Memory", "Vector Memory", "Episodic Memory", "Semantic Memory"]),
-    18: ("Planning & Reasoning",           ["ReAct", "Tree of Thoughts", "Planning Strategies", "Reflection", "Iterative Reasoning"]),
-    19: ("LangGraph",                      ["Nodes", "Edges", "State", "Conditional Routing", "Human-in-the-Loop", "Error Recovery"]),
-    20: ("Workflow Orchestration",         ["Multi-Step Workflows", "Durable Execution", "Retry Logic", "Parallel Execution", "Agent Coordination"]),
-    21: ("Multi-Agent Systems",            ["Why Multi-Agent Systems", "Supervisor Pattern", "Planner-Executor Pattern", "Swarm Architecture", "Collaboration Strategies"]),
-    22: ("AI Guardrails & Safety",         ["Prompt Injection", "Jailbreaks", "Input Validation", "Output Validation", "Content Moderation", "Secure Agent Design"]),
-    23: ("AI Evaluation",                  ["Benchmarking", "Human Evaluation", "LLM-as-a-Judge", "RAG Evaluation", "Response Quality Metrics"]),
-    24: ("AI Observability",               ["Prompt Logging", "Tracing", "Token Usage", "Cost Monitoring", "Latency Monitoring", "Error Analysis"]),
-    25: ("Production AI Security",         ["Secret Management", "API Security", "Data Privacy", "PII Protection", "Secure Deployment"]),
-    26: ("LLMOps",                         ["CI/CD for AI", "Model Versioning", "Prompt Versioning", "Deployment Pipelines", "Experiment Tracking"]),
-    27: ("Production Optimization",        ["Latency Optimization", "Throughput Optimization", "Streaming Responses", "Caching", "Batching", "Rate Limits"]),
-    28: ("Cost Engineering",               ["Token Optimization", "Model Selection", "Context Optimization", "Embedding Costs", "Infrastructure Costs"]),
-    29: ("Deploying AI Systems",           ["AI Backend Architecture", "Scaling AI APIs", "High Availability", "Monitoring", "Failure Recovery", "Production Best Practices"]),
-    30: ("AI System Design Masterclass",   ["Design a Production AI Assistant", "RAG + Agents + Tools", "End-to-End Architecture", "Scaling Strategy", "Common Interview Questions", "SDE-2 AI Backend Revision"]),
+AI = {
+    1:  ("Introduction to LLMs",                ["How LLMs Work: Training & Inference", "Tokens, Context Window & Limitations"]),
+    2:  ("Transformer Architecture",            ["Self-Attention & Multi-Head Attention", "Encoder vs Decoder & Positional Encoding"]),
+    3:  ("Tokens & Embeddings",                 ["Tokenization: BPE & WordPiece", "Embeddings, Vector Space & Cosine Similarity"]),
+    4:  ("Prompt Engineering",                  ["Zero-shot, Few-shot & Chain of Thought", "Prompt Templates, System Prompts & Structured Outputs"]),
+    5:  ("LLM Inference",                       ["Inference Pipeline: Temperature & Sampling", "Latency, Throughput, Streaming & Caching"]),
+    6:  ("Vector Databases",                    ["HNSW Index & ANN Search Internals", "Pinecone, Weaviate & ChromaDB Comparison"]),
+    7:  ("Embedding Models",                    ["Choosing the Right Embedding Model", "Evaluating & Benchmarking Embedding Quality"]),
+    8:  ("Document Chunking",                   ["Recursive & Semantic Chunking Strategies", "Parent-Child Chunking & Metadata Enrichment"]),
+    9:  ("RAG Architecture",                    ["Complete RAG Pipeline End-to-End", "Hallucination Reduction & Context Injection"]),
+    10: ("Semantic & Hybrid Search",            ["Hybrid Search: BM25 + Dense Retrieval", "Metadata Filtering & Query Expansion"]),
+    11: ("Advanced RAG",                        ["Context Compression & Query Routing", "Agentic RAG & Multi-Step Retrieval"]),
+    12: ("Reranking",                           ["Cross-Encoder Rerankers & When to Use Them", "Reciprocal Rank Fusion"]),
+    13: ("Tool & Function Calling",             ["Function Calling & Structured JSON Outputs", "API Integration, Error Handling & Retries"]),
+    14: ("MCP Protocol",                        ["MCP Architecture & Core Concepts", "Building MCP Servers, Tools & Resources"]),
+    15: ("AI Application Architecture",         ["Enterprise AI System Patterns", "AI Backend Integration with REST APIs"]),
+    16: ("AI Agents",                           ["Agent Loop: Perception, Reasoning, Action", "Agent Types & Design Patterns"]),
+    17: ("Agent Memory",                        ["Short-Term vs Long-Term Memory", "Vector Memory & Episodic Memory"]),
+    18: ("Planning & Reasoning",                ["ReAct Framework & Chain of Thought", "Tree of Thoughts & Self-Reflection"]),
+    19: ("LangGraph",                           ["State, Nodes & Conditional Routing", "Human-in-the-Loop & Error Recovery"]),
+    20: ("Workflow Orchestration",              ["Multi-Step Workflows & Parallel Execution", "Durable Execution & Retry Logic"]),
+    21: ("Multi-Agent Systems",                 ["Supervisor & Planner-Executor Patterns", "Swarm Architecture & Agent Communication"]),
+    22: ("AI Safety & Guardrails",              ["Prompt Injection & Jailbreak Prevention", "Input/Output Validation & Content Moderation"]),
+    23: ("AI Evaluation",                       ["LLM-as-a-Judge & RAG Evaluation Metrics", "Response Quality, Benchmarking & A/B Testing"]),
+    24: ("AI Observability",                    ["Tracing, Prompt Logging & Token Monitoring", "Latency & Cost Monitoring"]),
+    25: ("Production AI Security",              ["API Security, PII Protection & Data Privacy", "Secure Deployment & Secrets Management"]),
+    26: ("LLMOps",                              ["CI/CD for AI & Prompt Versioning", "Deployment Pipelines & Experiment Tracking"]),
+    27: ("Production Optimization",             ["Latency Optimization: Caching & Batching", "Streaming Responses & Throughput Tuning"]),
+    28: ("Cost Engineering",                    ["Token Optimization & Model Selection", "Context Window Optimization & Cost Monitoring"]),
+    29: ("Deploying AI Systems",                ["Scaling AI APIs & High Availability", "Failure Recovery & Production Best Practices"]),
+    30: ("AI System Design",                    ["Design a Production RAG System end-to-end", "Design an AI Agent Backend end-to-end"]),
+    31: ("Senior AI Interview: LLM Foundations",["LLM architecture, attention, tokenization: 8 senior interview Q&A with model answers", "Prompt engineering, inference tuning: 8 senior interview Q&A with model answers"]),
+    32: ("Senior AI Interview: RAG Systems",    ["RAG pipeline, chunking, retrieval: 8 senior interview Q&A with model answers", "Hybrid search, reranking, hallucination: 8 senior interview Q&A with model answers"]),
+    33: ("Senior AI Interview: Agents & Tools", ["Agent architecture, tool calling, MCP: 8 senior interview Q&A with model answers", "Agent memory, planning, LangGraph: 8 senior interview Q&A with model answers"]),
+    34: ("Senior AI Interview: Production AI",  ["LLMOps, deployment, scaling AI APIs: 8 senior interview Q&A with model answers", "Cost engineering, latency, observability: 8 senior interview Q&A with model answers"]),
+    35: ("Senior AI Interview: Safety & Eval",  ["Guardrails, prompt injection, jailbreaks: 8 senior interview Q&A with model answers", "AI evaluation, benchmarking, LLM-as-a-Judge: 8 senior interview Q&A with model answers"]),
+    36: ("AI System Design: RAG",               ["Design a production RAG system: full staff-level walkthrough", "Design an AI-powered search engine: full walkthrough"]),
+    37: ("AI System Design: Agents",            ["Design a multi-agent customer support system: full walkthrough", "Design an LLMOps pipeline: full walkthrough"]),
+    38: ("AI System Design: Enterprise",        ["Design a document intelligence platform: full walkthrough", "Design a real-time AI assistant API: full walkthrough"]),
+    39: ("AI Hard Questions I",                 ["10 hardest LLM & RAG interview questions with model answers", "10 hardest AI agent interview questions with model answers"]),
+    40: ("AI Hard Questions II",                ["10 hardest production AI interview questions with model answers", "10 hardest AI system design questions with model answers"]),
+    41: ("AI Rapid Fire I",                     ["30 rapid-fire AI interview Q&A: LLM & RAG focus", "30 rapid-fire AI interview Q&A: Agents & Tools focus"]),
+    42: ("AI Rapid Fire II",                    ["30 rapid-fire AI system design Q&A", "Common AI interview mistakes & how to avoid them"]),
+    43: ("AI Scenario Questions I",             ["Scenario: RAG system with poor retrieval quality: diagnose & fix", "Scenario: Agent stuck in a loop: diagnose & resolve"]),
+    44: ("AI Scenario Questions II",            ["Scenario: AI system costs 10x budget: find & fix", "Scenario: AI API P99 latency is 8s: trace & fix"]),
+    45: ("Final AI Revision",                   ["Full revision: Every AI concept Days 1-30 as interview Q&A", "AI system design: Design the most complex AI system you can"]),
 }
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
-def _format_topics(topics):
-    lines = []
-    for t in topics:
-        lines.append("  - " + t)
-    return "\n".join(lines)
-
+def _fmt(topics):
+    return "\n".join("  - " + t for t in topics)
 
 # ---------------------------------------------------------------------------
-# Master prompt (injected with the current day)
+# System prompt (shared across all 3 calls)
 # ---------------------------------------------------------------------------
-SYSTEM_PROMPT = """You are a Senior Software Engineer and Backend Mentor with 10+ years of experience building production backend systems and mentoring engineers into SDE-2 roles at companies like Salesforce, Microsoft, Amazon, Atlassian, Oracle, Adobe, JPMorgan, and Walmart Global Tech.
 
-You are running a structured 30-Day Backend & Agentic AI Bootcamp for one engineer.
+SYSTEM_PROMPT = """You are a Senior Software Engineer and Backend Mentor with 10+ years of experience
+mentoring engineers into SDE-2 roles at Salesforce, Microsoft, Amazon, Atlassian, Oracle, Adobe, JPMorgan, and Walmart.
 
-Their goal: crack SDE-2 Backend interviews and develop real production-engineering skills.
+You are generating one section of a 45-Day Backend & Agentic AI Bootcamp newsletter.
 
-YOUR TEACHING PHILOSOPHY:
-- Teach first. Explain deeply. Then show the code.
-- Every difficult concept must be understood intuitively before being explained technically.
-- Never assume the reader already understands something — build the mental model from scratch, then go deep.
-- Prioritize clarity over cleverness. Dense is good. Confusing is not.
-- Ground every concept in a real production scenario the reader can relate to.
+RULES:
+- Every topic listed gets EQUAL depth. No topic is more important than another.
+- Never skip, summarise, or merge topics. Each gets its own complete treatment.
+- Dense, practical, interview-focused. No fluff. No motivational filler.
+- Write like a premium engineering textbook — clear, precise, immediately useful.
+- Output ONLY the HTML body content for your section (no DOCTYPE, no <html>, no <head>, no <body> tags).
+- Use inline CSS only. Cards: background:white, border-radius:12px, padding:32px, margin-bottom:24px, box-shadow:0 2px 12px rgba(0,0,0,0.08).
+- Code blocks: background:#1e1e1e, color:#d4d4d4, font-family:Courier New monospace, font-size:13px, padding:20px, border-radius:8px, overflow-x:auto.
+- Callout boxes — Interview: background:#eff6ff, border-left:4px solid #2563eb, padding:16px, border-radius:0 8px 8px 0.
+- Callout boxes — Production: background:#fff7ed, border-left:4px solid #ea580c, padding:16px, border-radius:0 8px 8px 0.
+- Callout boxes — Takeaway: background:#f0fdf4, border-left:4px solid #16a34a, padding:16px, border-radius:0 8px 8px 0.
+- Section headers: font-size:22px, font-weight:700, border-left:5px solid #2563eb, padding-left:14px, margin-bottom:20px, font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif."""
 
-YOUR VOICE:
-- You are a mentor, not a lecturer. Write like you are sitting next to the reader and walking them through a concept.
-- No buzzwords. No hype. No motivational filler.
-- Write as if producing a premium engineering textbook — tight, detailed, practical.
+# ---------------------------------------------------------------------------
+# Prompt builders — one per API call
+# ---------------------------------------------------------------------------
 
-WHAT YOU ARE NOT:
-- You are not a Staff Engineer or Principal Engineer explaining architecture to other architects.
-- You are not writing for a Google SRE or a Netflix distributed systems team.
-- You are not simplifying concepts to the point of being useless.
+def prompt_backend(day, b_title, b_topics):
+    b_str = _fmt(b_topics)
+    prev = day - 1 if day > 1 else 1
+    return f"""Generate the BACKEND ENGINEERING section for Day {day} of 45 of a Backend & Agentic AI Bootcamp.
 
-WHAT YOU ARE:
-- A mentor helping a strong junior/mid-level engineer deeply understand backend engineering.
-- Someone who explains the internals because real understanding leads to confident interviews.
-- Someone who connects every concept to real code, real bugs, and real interviews.
+Backend theme: {b_title}
 
-DEPTH RULE: Fewer topics explained deeply is always better than many topics explained shallowly. I would rather read 3 topics with 1,500 words each than 8 topics with 400 words each."""
+Topics:
+{b_str}
+
+For EVERY topic above, write a complete explanation with these exact subsections:
+
+1. What is it?
+   Plain definition. No jargon without explanation.
+
+2. Why do we need it?
+   The real problem it solves. What breaks or becomes harder without it.
+
+3. How does it work?
+   Internal mechanics step by step. Deep enough for SDE-2 interviews.
+   Use analogies where helpful. Include ASCII diagrams for architecture if useful.
+
+4. Where is it used?
+   A real Java or Spring Boot code example — clean, well-commented, production-quality.
+   A real production scenario where this concept directly matters.
+
+5. Interview focus
+   - 5 SDE-2 interview questions on this topic with the direction a strong answer would take
+   - 3 common mistakes engineers make with this concept
+
+Wrap the entire section in a white card div with inline styles.
+Use a bold section header: "Backend Engineering — Day {day}: {b_title}".
+Depth should be noticeably harder than Day {prev}."""
 
 
-def build_user_prompt(day: int) -> str:
-    # ── pull exact curriculum for this day ──────────────────────────────────
-    b_title, b_topics = BACKEND_CURRICULUM.get(day, ("Backend Review", ["Mixed topics"]))
-    a_title, a_topics = AI_CURRICULUM.get(day, ("AI Review", ["Mixed topics"]))
+def prompt_ai(day, a_title, a_topics):
+    a_str = _fmt(a_topics)
+    prev = day - 1 if day > 1 else 1
+    return f"""Generate the AGENTIC AI section for Day {day} of 45 of a Backend & Agentic AI Bootcamp.
 
-    b_topics_str = _format_topics(b_topics)
-    a_topics_str = _format_topics(a_topics)
+AI theme: {a_title}
 
-    # For the backend section instruction, select 3 subtopics to go deep on
-    b_deep = b_topics[:3] if len(b_topics) >= 3 else b_topics
-    b_deep_str = _format_topics(b_deep)
+Topics:
+{a_str}
 
-    # For the AI section instruction, select 2 subtopics to go deep on
-    a_deep = a_topics[:2] if len(a_topics) >= 2 else a_topics
-    a_deep_str = _format_topics(a_deep)
+For EVERY topic above, write a complete explanation with these exact subsections:
 
-    # Revision corner text — built outside the f-string to avoid backslash/nesting issues
-    if day == 1:
-        revision_text = "Skip this section entirely — this is Day 1."
-    else:
-        revision_text = (
-            f"Exactly 5 questions drawn from concepts covered in Days 1 through {day - 1}.\n"
-            "Do not ask about today's topics.\n"
-            "Questions must require real understanding — not just definitions.\n"
-            "Mix conceptual, debugging, and design questions."
-        )
+1. What is it?
+   Plain definition. No jargon without explanation.
 
-    # Tomorrow preview day
-    next_day = day + 1 if day < 30 else 1
-    nb_title, nb_topics = BACKEND_CURRICULUM.get(next_day, ("Backend Review", []))
-    na_title, na_topics = AI_CURRICULUM.get(next_day, ("AI Review", []))
+2. Why do we need it?
+   The real problem it solves. What breaks without it.
 
-    # Pre-compute all expressions used inside the prompt string
-    # (avoids backslash-in-f-string errors on Python < 3.12)
-    prev_day = day - 1 if day > 1 else 1
-    pct = round(day / 30 * 100)
-    nb_preview = ", ".join(nb_topics[:4]) + ("..." if len(nb_topics) > 4 else "")
-    na_preview = ", ".join(na_topics[:3]) + ("..." if len(na_topics) > 3 else "")
+3. How does it work?
+   Internal mechanics step by step.
+   Include an architecture diagram using HTML/CSS divs where useful.
 
-    return f"""Generate Day {day} of 30 for the 30-Day Backend & Agentic AI Bootcamp newsletter.
+4. Where is it used?
+   A real Python code example or concrete prompt example.
+   A real production AI system scenario where this concept directly matters.
 
-## NON-NEGOTIABLE RULES
-1. Generate ONLY Day {day} content. Do not explain or summarize previous days.
-2. This newsletter is one chapter of a continuous 30-day engineering book. Build on what came before.
-3. Never repeat concepts already covered in earlier days. Go forward.
-4. Increase depth every single day. Day {day} must be noticeably more advanced than Day {prev_day}.
-5. Do not add introductions, disclaimers, filler phrases, or motivational sentences. Start with content immediately.
-6. Every concept must be explained deeply, intuitively, and practically — not academically.
-7. Use the full response length. Do not truncate content early.
-8. If content must be cut due to length, cut in this order (last to first):
-   Tomorrow Preview → Revision → AI Challenge → Backend Challenge → Industry Pulse → AI Section → Backend Section → System Design (never cut System Design).
+5. Interview focus
+   - 5 SDE-2 AI interview questions on this topic with the direction a strong answer would take
+   - 3 common mistakes engineers make with this concept
 
----
+Wrap the entire section in a white card div with inline styles.
+Use a bold section header: "Agentic AI — Day {day}: {a_title}".
+Depth should be noticeably harder than Day {prev}."""
 
-## TARGET AUDIENCE
-An engineer with basic Java knowledge preparing for SDE-2 Backend interviews at:
-Salesforce, Microsoft, Amazon, Atlassian, Oracle, Adobe, JPMorgan, Walmart Global Tech, Databricks.
 
----
+def prompt_system_design(day, b_title):
+    prev = day - 1 if day > 1 else 1
+    return f"""Generate the SYSTEM DESIGN section and BACKEND CODING CHALLENGE for Day {day} of 45 of a Backend & Agentic AI Bootcamp.
 
-## SECTION 1 — 📈 Progress Dashboard
+Design a system that naturally relates to today's backend theme: {b_title}
 
-Include:
-- Day {day} / 30 with a visual HTML/CSS progress bar ({pct}% filled)
-- A short 2-line summary of where the 30-day journey stands at Day {day}
-- Today's backend theme: {b_title}
-- Today's AI theme: {a_title}
-- Estimated reading time
+SYSTEM DESIGN — cover all of the following in order, in full detail:
 
----
+1. Problem Statement — what are we building and why?
+2. Functional Requirements — 5 to 8 specific requirements
+3. Non-Functional Requirements — latency, availability, consistency, scalability targets
+4. API Design — REST endpoints with method, path, request body, response body, status codes
+5. Database Design — tables, columns, data types, indexes. Explain every index and why it exists.
+6. High-Level Architecture — draw using HTML/CSS divs, flexbox, borders and colours. No images.
+7. Component Responsibilities — for each component explain what it does and why it exists
+8. Request Flow — step by step walkthrough of a key user request. Explain every hop.
+9. Caching Strategy — what is cached, where, what TTL, what invalidation strategy
+10. Scaling Strategy — how does the system scale from 10K to 1M users? What changes and why?
+11. Bottlenecks — where will this break under load? How do you fix each one?
+12. Failure Handling — DB down, cache down, service crash. Recovery strategy for each.
+13. Monitoring & Alerting — key metrics, alerts, how to debug a production incident
+14. Security — auth, input validation, at least one design-specific risk
+15. Trade-offs — what was sacrificed? What would you do differently with more time?
+16. 5 follow-up interview questions with the direction a strong answer would take
 
-## SECTION 2 — ☕ Backend Engineering
-
-Today's theme: **{b_title}**
-
-Full topic list for Day {day}:
-{b_topics_str}
-
-Go deep on exactly these 3 subtopics (the most important ones for interviews and production):
-{b_deep_str}
-
-For EACH of the 3 subtopics, write a detailed explanation in this exact order:
-
-**1. What Is It?**
-Explain the concept in simple language. Start from the basics and define it clearly.
-
-**2. Why Do We Need It?**
-Explain the problem it solves, why it was introduced, and what would happen if it did not exist.
-
-**3. How Does It Work?**
-Explain the internal working step by step with enough depth for SDE-2 interviews. Use diagrams or analogies where useful.
-
-**4. Where Is It Used?**
-Explain where this concept appears in Java, Spring Boot, distributed systems, or real production backend applications. Include a practical Java or Spring Boot code example.
-
-**5. Interview Focus**
-- 3 to 5 common SDE-2 interview questions on this topic
-- 3 common mistakes engineers make with this concept
-
-After covering the 3 deep topics, write a brief **"Rest of Day {day} Topics"** section that gives a 2-sentence summary for each remaining topic in the full list:
-{b_topics_str}
-
----
-
-## SECTION 3 — 🤖 Agentic AI
-
-Today's theme: **{a_title}**
-
-Full topic list for Day {day}:
-{a_topics_str}
-
-Go deep on exactly these 2 subtopics:
-{a_deep_str}
-
-For EACH of the 2 subtopics, write a detailed explanation in this exact order:
-
-**1. What Is It?**
-Explain the concept in simple language. Define it clearly without assuming prior knowledge.
-
-**2. Why Do We Need It?**
-Explain the problem it solves and why it was built. What would break without it?
-
-**3. How Does It Work?**
-Explain the internal working step by step. Include architecture details where relevant.
-
-**4. Where Is It Used?**
-Show a real production AI system where this concept appears. Include a Python code example or prompt example where applicable.
-
-**5. Interview Focus**
-- 3 common SDE-2 AI interview questions on this topic
-- 3 common mistakes engineers make with this concept
-
-After the 2 deep topics, write a brief **"Rest of Day {day} AI Topics"** section with a 2-sentence summary for each remaining topic:
-{a_topics_str}
-
----
-
-## SECTION 4 — 🌍 Industry Pulse
-
-Exactly 3 items. Each item must teach a real engineering lesson — not just report news.
-
-For each item include:
-- What happened (1–2 sentences)
-- Why it matters to a backend engineer (1–2 sentences)
-- The engineering lesson to take away (2–3 sentences, specific and actionable)
-
-Topics can include: real production incidents, engineering blog deep-dives, notable open source releases, backend architecture decisions made at scale companies, database lessons, API design patterns observed in the wild.
-
----
-
-## SECTION 5 — 🏗 Daily System Design
-
-This is the most important section. Allocate the most space to it.
-
-The design problem must naturally align with today's backend theme: **{b_title}**
-
-Answer as a strong SDE-2 candidate would in a live interview. Explain every decision — not just what you chose, but why.
-
-Include all of the following, in order:
-
-1. **Problem Statement** — What are we building and why?
-2. **Functional Requirements** — What must the system do? (5–8 specific requirements)
-3. **Non-Functional Requirements** — Latency, availability, consistency, scalability targets
-4. **API Design** — REST endpoints with method, path, request body, response body, and status codes
-5. **Database Design** — Tables/collections, columns, data types, indexes, and relationships. Explain every index.
-6. **High-Level Architecture** — Describe the components and draw the architecture using HTML/CSS boxes and arrows
-7. **Component Responsibilities** — For each component (API Gateway, Service, Cache, Queue, Database, Workers): what it does and why it exists
-8. **Request Flow** — Step-by-step walkthrough of a key user request through the system. Explain why each hop exists.
-9. **Caching Strategy** — What is cached, where, what TTL, and what invalidation strategy
-10. **Scaling Strategy** — How does the system scale from 10K to 1M users? What changes and why?
-11. **Bottlenecks** — Where will this system break under load? How do you address each one?
-12. **Failure Handling** — What happens when the database goes down? When the cache fails? When a service crashes? Recovery strategy for each.
-13. **Monitoring** — Key metrics, alerts, and how you would debug a production incident in this system
-14. **Security** — Authentication, authorisation, input validation, and at least one security risk specific to this design
-15. **Trade-offs** — What did you sacrifice? What would you do differently with more time or resources?
-16. **Interview Questions** — 5 follow-up questions an interviewer would ask, with the direction a strong answer would take
-
----
-
-## SECTION 6 — 💻 Backend Coding Challenge
-
-One hands-on Java implementation problem directly tied to today's backend theme: **{b_title}**
-
-Include:
-- Problem statement (clear, specific, production-relevant)
+BACKEND CODING CHALLENGE:
+One Java implementation problem tied to {b_title}.
+- Problem statement (clear, production-relevant)
 - Constraints
-- Expected input/output
-- Starter code skeleton in Java
-- What concept this tests and why it matters in interviews
-
+- Expected input and output examples
+- Java starter skeleton with meaningful comments
+- What concept this tests and why it matters in SDE-2 interviews
 Do NOT include the solution.
 
----
-
-## SECTION 7 — 🤖 AI Implementation Challenge
-
-One practical AI engineering challenge tied to today's AI theme: **{a_title}**
-
-Include:
-- What to build
-- Tech stack to use
-- Key implementation steps
-- What to think about (edge cases, failure modes)
-- Why this challenge is relevant to production AI systems
-
-Do NOT include the solution.
-
----
-
-## SECTION 8 — 🔁 Revision Corner
-
-{revision_text}
-
----
-
-## SECTION 9 — 📅 Tomorrow Preview
-
-Day {next_day} covers:
-- Backend: **{nb_title}** — {nb_preview}
-- AI: **{na_title}** — {na_preview}
-
-Write exactly 3 bullet points — one sentence each — telling the reader what specifically they will learn tomorrow and why it matters.
-
----
-
-## FORMATTING REQUIREMENTS
-
-Output must be a single complete HTML document, beautiful and Gmail-compatible.
-
-- Font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
-- Max width: 800px, centered, background: #f0f2f5
-- Each section in a white card: background:white, border-radius:12px, padding:32px, margin-bottom:24px, box-shadow:0 2px 12px rgba(0,0,0,0.08)
-- Section headers: font-size:22px, font-weight:700, border-left:5px solid #2563eb, padding-left:14px, margin-bottom:20px
-- Code blocks: <pre><code> with background:#1e1e1e, color:#d4d4d4, font-family:'Courier New',monospace, font-size:13px, padding:20px, border-radius:8px, overflow-x:auto
-- Callout boxes (use for Interview Tips, Production Notes, Debugging Stories, Key Takeaways):
-  * Interview Tips: background:#eff6ff, border-left:4px solid #2563eb, padding:16px, border-radius:0 8px 8px 0
-  * Production Notes: background:#fff7ed, border-left:4px solid #ea580c, padding:16px, border-radius:0 8px 8px 0
-  * Debugging Story: background:#fdf4ff, border-left:4px solid #9333ea, padding:16px, border-radius:0 8px 8px 0
-  * Key Takeaways: background:#f0fdf4, border-left:4px solid #16a34a, padding:16px, border-radius:0 8px 8px 0
-- Architecture diagrams: built with HTML/CSS divs using flexbox, borders, background colours — no external images
-- Progress bar: outer div background:#e5e7eb, inner div width:{pct}%, background:linear-gradient(90deg,#2563eb,#7c3aed), height:12px, border-radius:6px
-- Topic badges: display:inline-block, background:#eff6ff, color:#1d4ed8, border:1px solid #bfdbfe, border-radius:20px, padding:4px 12px, font-size:13px, margin:3px
-- The entire output must start with <!DOCTYPE html>
-- Do NOT use external stylesheets, external fonts, or external images
-- Inline all critical styles directly on elements
-
-The final result must read like a premium engineering textbook — dense, clear, deeply explained, and immediately useful for both learning and interview preparation."""
-
+Wrap each part (System Design and Coding Challenge) in its own white card div with inline styles.
+Use bold section headers: "System Design — Day {day}" and "Backend Coding Challenge — Day {day}".
+Depth should be noticeably harder than Day {prev}."""
 
 # ---------------------------------------------------------------------------
-# API call with retry logic
+# API call helper
 # ---------------------------------------------------------------------------
-def call_deepseek(day: int, max_retries: int = 3) -> str:
+
+def call_deepseek(prompt_text, label, max_retries=3):
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
     }
-
     payload = {
         "model": "deepseek-chat",
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": build_user_prompt(day)},
+            {"role": "user",   "content": prompt_text},
         ],
         "max_tokens": 8192,
         "temperature": 0.7,
@@ -400,89 +283,117 @@ def call_deepseek(day: int, max_retries: int = 3) -> str:
     }
 
     for attempt in range(1, max_retries + 1):
-        print(f"[generate] Attempt {attempt}/{max_retries} — calling DeepSeek for Day {day}...")
+        print(f"[{label}] Attempt {attempt}/{max_retries}...")
         try:
-            response = requests.post(
-                DEEPSEEK_API_URL,
-                headers=headers,
-                json=payload,
-                timeout=300,  # 5-minute timeout for long responses
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            content = data["choices"][0]["message"]["content"]
-            tokens_used = data.get("usage", {})
-            print(f"[generate] Success — tokens used: {tokens_used}")
-            return content
-
+            r = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=300)
+            r.raise_for_status()
+            data = r.json()
+            usage = data.get("usage", {})
+            print(f"[{label}] Done — tokens: {usage}")
+            return data["choices"][0]["message"]["content"]
         except requests.exceptions.Timeout:
-            print(f"[generate] Timeout on attempt {attempt}.")
+            print(f"[{label}] Timeout on attempt {attempt}.")
         except requests.exceptions.HTTPError as e:
-            print(f"[generate] HTTP error on attempt {attempt}: {e.response.status_code} {e.response.text}")
+            print(f"[{label}] HTTP {e.response.status_code}: {e.response.text}")
             if e.response.status_code in (400, 401, 403):
-                # Non-retriable errors
                 raise
         except Exception as e:
-            print(f"[generate] Unexpected error on attempt {attempt}: {e}")
+            print(f"[{label}] Error: {e}")
 
         if attempt < max_retries:
             wait = 15 * attempt
-            print(f"[generate] Waiting {wait}s before retry...")
+            print(f"[{label}] Retrying in {wait}s...")
             time.sleep(wait)
 
-    raise RuntimeError(f"Failed to generate newsletter after {max_retries} attempts.")
+    raise RuntimeError(f"[{label}] Failed after {max_retries} attempts.")
+
+
+def strip_fences(text):
+    text = text.strip()
+    if text.startswith("```html"):
+        text = text[7:]
+    elif text.startswith("```"):
+        text = text[3:]
+    if text.endswith("```"):
+        text = text[:-3]
+    return text.strip()
 
 
 # ---------------------------------------------------------------------------
-# Post-processing: ensure output is valid HTML
+# HTML assembly
 # ---------------------------------------------------------------------------
-def ensure_html(content: str) -> str:
-    """
-    DeepSeek sometimes wraps its output in a markdown code fence.
-    Strip it if present and ensure we have a complete HTML document.
-    """
-    content = content.strip()
 
-    # Strip markdown code fences
-    if content.startswith("```html"):
-        content = content[7:]
-    elif content.startswith("```"):
-        content = content[3:]
-    if content.endswith("```"):
-        content = content[:-3]
-    content = content.strip()
+def build_html(day, b_title, a_title, backend_html, ai_html, sysdesign_html):
+    pct = round(day / TOTAL_DAYS * 100)
+    progress_bar = (
+        f'<div style="background:#e5e7eb;border-radius:6px;height:12px;margin:12px 0 4px 0;">'
+        f'<div style="width:{pct}%;background:linear-gradient(90deg,#2563eb,#7c3aed);height:12px;border-radius:6px;"></div>'
+        f'</div>'
+    )
+    dashboard = f"""
+    <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);color:white;border-radius:12px;padding:32px;margin-bottom:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">45-Day Backend & Agentic AI Bootcamp</div>
+      <div style="font-size:28px;font-weight:800;margin-bottom:8px;">Day {day} / {TOTAL_DAYS}</div>
+      {progress_bar}
+      <div style="font-size:13px;opacity:0.75;margin-top:8px;">{pct}% complete</div>
+      <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+        <span style="background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 14px;font-size:13px;">Backend: {b_title}</span>
+        <span style="background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 14px;font-size:13px;">AI: {a_title}</span>
+      </div>
+    </div>
+    """
 
-    # Ensure we have a proper HTML document
-    if not content.lower().startswith("<!doctype"):
-        content = f"""<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>30-Day Bootcamp — Day {CURRENT_DAY}</title>
+<title>45-Day Bootcamp — Day {day}: {b_title}</title>
 </head>
-<body>
-{content}
+<body style="margin:0;padding:20px;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<div style="max-width:800px;margin:0 auto;">
+
+{dashboard}
+
+{backend_html}
+
+{ai_html}
+
+{sysdesign_html}
+
+</div>
 </body>
 </html>"""
-    return content
 
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
-def main():
-    print(f"[generate] Generating newsletter for Day {CURRENT_DAY}...")
 
-    html_content = call_deepseek(CURRENT_DAY)
-    html_content = ensure_html(html_content)
+def main():
+    day = CURRENT_DAY
+    b_title, b_topics = BACKEND.get(day, ("Backend Review", ["Mixed review"]))
+    a_title, a_topics = AI.get(day, ("AI Review", ["Mixed review"]))
+
+    print(f"[generate] Day {day} — Backend: {b_title} | AI: {a_title}")
+    print("[generate] Making 3 API calls...")
+
+    backend_raw   = call_deepseek(prompt_backend(day, b_title, b_topics),       "backend")
+    ai_raw        = call_deepseek(prompt_ai(day, a_title, a_topics),             "ai")
+    sysdesign_raw = call_deepseek(prompt_system_design(day, b_title),            "sysdesign")
+
+    html = build_html(
+        day, b_title, a_title,
+        strip_fences(backend_raw),
+        strip_fences(ai_raw),
+        strip_fences(sysdesign_raw),
+    )
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write(html_content)
+        f.write(html)
 
-    size_kb = len(html_content.encode("utf-8")) / 1024
-    print(f"[generate] Saved to {OUTPUT_FILE} ({size_kb:.1f} KB)")
+    size_kb = len(html.encode()) / 1024
+    print(f"[generate] Saved {OUTPUT_FILE} ({size_kb:.1f} KB)")
 
 
 if __name__ == "__main__":
