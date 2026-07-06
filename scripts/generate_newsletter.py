@@ -143,6 +143,17 @@ def build_user_prompt(day: int) -> str:
     a_deep = a_topics[:2] if len(a_topics) >= 2 else a_topics
     a_deep_str = _format_topics(a_deep)
 
+    # Revision corner text — built outside the f-string to avoid backslash/nesting issues
+    if day == 1:
+        revision_text = "Skip this section entirely — this is Day 1."
+    else:
+        revision_text = (
+            f"Exactly 5 questions drawn from concepts covered in Days 1 through {day - 1}.\n"
+            "Do not ask about today's topics.\n"
+            "Questions must require real understanding — not just definitions.\n"
+            "Mix conceptual, debugging, and design questions."
+        )
+
     # Tomorrow preview day
     next_day = day + 1 if day < 30 else 1
     nb_title, nb_topics = BACKEND_CURRICULUM.get(next_day, ("Backend Review", []))
@@ -358,10 +369,7 @@ Do NOT include the solution.
 
 ## SECTION 8 — 🔁 Revision Corner
 
-{'Skip this section entirely — this is Day 1.' if day == 1 else f'''Exactly 5 questions drawn from concepts covered in Days 1 through {day - 1}.
-Do not ask about today\'s topics.
-Questions must require real understanding — not just definitions.
-Mix conceptual, debugging, and design questions.'''}
+{revision_text}
 
 ---
 
