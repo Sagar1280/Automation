@@ -211,47 +211,26 @@ Full topic list for Day {day}:
 Go deep on exactly these 3 subtopics (the most important ones for interviews and production):
 {b_deep_str}
 
-For EACH of the 3 subtopics, write a deeply detailed explanation in this exact order:
+For EACH of the 3 subtopics, write a detailed explanation in this exact order:
 
 **1. What Is It?**
-Define the concept plainly. One paragraph. No jargon without explanation.
+Explain the concept in simple language. Start from the basics and define it clearly.
 
-**2. Why Does It Exist?**
-Explain the real problem it was built to solve. Be specific. Use a concrete scenario.
+**2. Why Do We Need It?**
+Explain the problem it solves, why it was introduced, and what would happen if it did not exist.
 
-**3. Intuition**
-Build the mental model. Explain it like you are drawing on a whiteboard. Use an analogy if it helps. This section must make the concept click before any code is shown.
+**3. How Does It Work?**
+Explain the internal working step by step with enough depth for SDE-2 interviews. Use diagrams or analogies where useful.
 
-**4. Internal Working**
-Explain the mechanics. How does it actually work under the hood? Go deep. This is not surface description — explain the internals step by step.
+**4. Where Is It Used?**
+Explain where this concept appears in Java, Spring Boot, distributed systems, or real production backend applications. Include a practical Java or Spring Boot code example.
 
-**5. Java Implementation**
-Show clean, well-commented Java code. Not toy examples. Code that looks like it belongs in a real service.
+**5. Interview Focus**
+- 3 to 5 common SDE-2 interview questions on this topic
+- 3 common mistakes engineers make with this concept
 
-**6. Spring Boot Integration**
-Show how this concept is used in a real Spring Boot application. Include annotations, configuration, and relevant patterns.
-
-**7. Production Example**
-Describe a real scenario where this concept directly impacted a production system. Be specific — what was the service, what was the behaviour, what was the outcome.
-
-**8. Debugging Story**
-A short but real story: a bug or incident caused by misunderstanding or misusing this concept. What was the symptom? What was the root cause? How was it fixed?
-
-**9. Common Mistakes**
-List 3–5 specific mistakes engineers make with this concept, especially in interviews and production.
-
-**10. Performance Considerations**
-What are the performance implications? What should an engineer always think about when using it?
-
-**11. Interview Questions**
-Exactly 5 SDE-2 interview questions on this topic. Include the ideal answer approach for each — not the full answer, just what a strong candidate would say.
-
-**12. Key Takeaways**
-3–5 bullet points summarising the most important things to remember.
-
-After covering the 3 deep topics, add a brief **"Rest of Day {day} Topics"** section that gives a 2–3 sentence summary of each remaining topic from the full list:
+After covering the 3 deep topics, write a brief **"Rest of Day {day} Topics"** section that gives a 2-sentence summary for each remaining topic in the full list:
 {b_topics_str}
-This ensures the reader knows what the remaining topics are about even if they are not covered in full depth today.
 
 ---
 
@@ -265,42 +244,25 @@ Full topic list for Day {day}:
 Go deep on exactly these 2 subtopics:
 {a_deep_str}
 
-For EACH of the 2 subtopics, write a deeply detailed explanation in this exact order:
+For EACH of the 2 subtopics, write a detailed explanation in this exact order:
 
 **1. What Is It?**
-Define it plainly. One focused paragraph.
+Explain the concept in simple language. Define it clearly without assuming prior knowledge.
 
-**2. Why It Exists**
-What engineering problem does this solve? Why did it need to be built?
+**2. Why Do We Need It?**
+Explain the problem it solves and why it was built. What would break without it?
 
-**3. Internal Working**
-Explain the mechanics in detail. How does it actually work?
+**3. How Does It Work?**
+Explain the internal working step by step. Include architecture details where relevant.
 
-**4. Architecture**
-Describe how this component fits into a larger AI system. Draw the architecture using HTML/CSS if helpful.
+**4. Where Is It Used?**
+Show a real production AI system where this concept appears. Include a Python code example or prompt example where applicable.
 
-**5. Implementation**
-Show real implementation code in Python or pseudocode. Make it practical.
+**5. Interview Focus**
+- 3 common SDE-2 AI interview questions on this topic
+- 3 common mistakes engineers make with this concept
 
-**6. Prompt Example**
-If applicable, show a concrete prompt and explain why it is structured that way.
-
-**7. Production Example**
-A real-world scenario where this concept is used in a production AI system.
-
-**8. Failure Modes**
-What goes wrong with this in production? Be specific.
-
-**9. Cost Considerations**
-What does this cost to run? What drives the cost? How do you optimise it?
-
-**10. Interview Questions**
-Exactly 3 SDE-2 AI interview questions on this topic with ideal answer direction.
-
-**11. Key Takeaways**
-3–4 bullets summarising what matters most.
-
-After the 2 deep topics, add a brief **"Rest of Day {day} AI Topics"** section — 2–3 sentences per remaining topic from:
+After the 2 deep topics, write a brief **"Rest of Day {day} AI Topics"** section with a 2-sentence summary for each remaining topic:
 {a_topics_str}
 
 ---
