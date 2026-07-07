@@ -126,6 +126,55 @@ AI = {
     45: ("Final AI Revision",                   ["Full revision: Every AI concept Days 1-30 as interview Q&A", "AI system design: Design the most complex AI system you can"]),
 }
 
+SYSTEM_DESIGN = {
+    1:  ("Scale from 0 to 1M Users", ["Single Server Setup & Vertical Scaling", "Database Replication & Read-Replicas", "Load Balancing & Horizontal Scaling"]),
+    2:  ("Back-of-the-Envelope Estimation", ["Latency, Throughput & QPS Calculations", "Storage & Bandwidth Estimation", "Memory & Cache Sizing Estimation"]),
+    3:  ("Client-Server Communication Protocols", ["REST vs GraphQL vs gRPC", "WebSockets vs Server-Sent Events (SSE)", "Long Polling & Short Polling"]),
+    4:  ("SQL vs NoSQL Databases", ["Relational DBs (PostgreSQL/MySQL)", "Key-Value Stores (Redis) & Document DBs (MongoDB)", "Wide-Column (Cassandra) & Graph Databases (Neo4j)"]),
+    5:  ("System-Wide Caching", ["Cache-Aside, Write-Through & Write-Behind Patterns", "Cache Eviction Policies (LRU, LFU, FIFO)", "Cache Stampede, Cache Penetration, Breakdown & Avalanche"]),
+    6:  ("Design a Distributed Key-Value Store", ["Data Partitioning & Replication", "Consistency Models & Tunable Consistency", "Handling Failures & Gossip Protocol"]),
+    7:  ("Design a Distributed Unique ID Generator", ["Auto-Increment DB IDs & UUIDs", "Twitter Snowflake ID Generator", "Ticket Server (Flicker) Strategy"]),
+    8:  ("Design a URL Shortener (TinyURL)", ["Base 62 Encoding & MD5 Hashing", "API Design & Redirect Operations", "Scalability & Caching High-Traffic Aliases"]),
+    9:  ("Design a Pastebin-like Text Sharing Service", ["Data Model & Object Storage Partitioning", "URL Generation & Expiry Cleanup Job", "Bandwidth & Storage Capacity Planning"]),
+    10: ("Design an API Rate Limiter", ["Algorithms: Token Bucket & Leaky Bucket", "Algorithms: Fixed Window & Sliding Window Log/Counter", "Distributed Rate Limiting with Redis & Token Sync"]),
+    11: ("Consistent Hashing Framework", ["Rehashing Problem & Hash Ring", "Virtual Nodes for Load Distribution", "Use Cases in DynamoDB, Cassandra & Memcached"]),
+    12: ("Design a Notification System", ["Multi-Channel Delivery (SMS, Email, Push)", "Priority Queues & Rate Limiting Consumers", "Delivery Guarantee (At-least-once) & Deduplication"]),
+    13: ("Design a Distributed File System (S3-like)", ["Metadata Storage vs Block Storage", "Object Upload Flow & Multipart Upload", "Data Replication & Strong vs Eventual Consistency"]),
+    14: ("Design a Scalable Web Crawler", ["URL Frontier & Politeness Policies", "HTML Parser & Content Deduplication (SimHash)", "Distributed Crawling & Failure Recovery"]),
+    15: ("Design a Distributed Message Queue", ["Commit Log Storage Engine", "Producer & Consumer Pull/Push Models", "Partitioning & High Availability (ISR, Leaders)"]),
+    16: ("Design a Proximity Search Service (Yelp)", ["Geohashing vs Quadtrees", "SQL Spatial Indexes vs In-Memory Search", "Read-Heavy Query Optimization & Cache Layer"]),
+    17: ("Design Search Autocomplete (Typeahead)", ["Trie Data Structure & Trie Serialization", "Prefix Hash Table & Query Frequency Aggregator", "Caching at Browser/CDN and Real-Time Update Pipeline"]),
+    18: ("Design a Real-Time Chat System", ["Connection Management (WebSockets/TCP)", "Presence Server & Online/Offline Status", "Message Storage Strategy: NoSQL (Cassandra/HBase) vs Relational"]),
+    19: ("Design a Video Streaming Platform", ["Video Transcoding & Encoding Pipeline", "Content Delivery Network (CDN) & Edge Caching", "Adaptive Bitrate Streaming (HLS/DASH) & Video Metadata DB"]),
+    20: ("Design a News Feed / Timeline System", ["Fanout-on-Read vs Fanout-on-Write", "Feed Generation & Storage Strategy", "Handling Celebrities & Hybrid Fanout Approach"]),
+    21: ("Design a Collaborative Real-Time Editor", ["Conflict Resolution: Operational Transformation (OT)", "Conflict Resolution: Conflict-free Replicated Data Types (CRDT)", "WebSocket Connection Management & Operation Logging"]),
+    22: ("Design a Search Engine (ElasticSearch-like)", ["Inverted Index Construction & Document Indexing", "Distributed Query Processing & Document Scoring", "Segment Merging & Real-Time Write Path"]),
+    23: ("Design a Ticket Booking System (Ticketmaster)", ["Concurrency & Race Conditions in Seat Selection", "Distributed Transactions vs Database Locks (Pessimistic/Optimistic)", "Temporary Seat Reservations & Expiry Queue"]),
+    24: ("Design a High-Concurrency Flash Sale System", ["Hot Key Caching & Redis Lua Scripts", "Database Write Buffering & Asynchronous Processing", "Over-selling Prevention & Rate Limiting"]),
+    25: ("Design a Distributed Job Scheduler", ["Task Queue & Worker Pool Architecture", "Cron Expression Parsing & Dynamic Scheduling", "Handling Worker Failures & At-Least-Once Execution"]),
+    26: ("Design a Ride-Hailing Service", ["Geospatial Indexing & Real-Time Location Tracking", "Driver-Passenger Matching Algorithm", "Dynamic Pricing (Surge Pricing) Architecture"]),
+    27: ("Design an Ad Click Aggregation System", ["Real-Time Stream Processing (Flink/Spark Streaming)", "MapReduce & Batch Aggregation for Auditing", "Handling Late/Duplicate Data & Deduplication"]),
+    28: ("Design a Digital Wallet System", ["Double-Entry Ledger Design & Balance Tracking", "Distributed Transactions & 2-Phase Commit (2PC)", "Idempotency Keys & Payment Gateway Integration"]),
+    29: ("Design a Logging & Metrics Collector", ["Push-Based vs Pull-Based Metrics Gathering", "Time-Series Database (TSDB) Storage & Compression", "Log Ingestion (Logstash/Fluentd) & Elasticsearch Indexing"]),
+    30: ("Design a Distributed Tracing System", ["Trace ID & Span ID Propagation via HTTP Headers", "Trace Context Collector & In-Memory Buffering", "Sampling Strategies to Control Storage Cost"]),
+    31: ("Design an E-Commerce System", ["Microservices Decomposition & Domain-Driven Design (DDD)", "Shopping Cart Service (Session Cache vs DB)", "Order Management & Saga Pattern Orchestration"]),
+    32: ("Distributed Transactions & Consensus", ["Two-Phase Commit (2PC) & Three-Phase Commit (3PC)", "Saga Pattern: Choreography vs Orchestration", "Raft & Paxos Consensus Algorithms (Conceptual Overview)"]),
+    33: ("Design a Live Streaming Platform", ["RTMP/WebRTC Ingestion & Transcoding", "HLS Delivery at Scale & Chat Integration", "Low Latency Buffering & Edge Stream Replicators"]),
+    34: ("Design a Distributed Database", ["Log-Structured Merge-Tree (LSM-Tree) vs B-Tree", "Write-Ahead Log (WAL) & MemTable", "SSTables & Compaction Strategies"]),
+    35: ("Design a Distributed Config Service (ZooKeeper)", ["Consensus-Based Configuration Storage", "Watcher Mechanism & Event Notification", "Split-Brain Mitigation & Leader Election"]),
+    36: ("Design a Multi-Region Active-Active System", ["Multi-Region Data Replication & Conflict Resolution", "Anycast Routing & Latency Optimization", "Failover & Disaster Recovery Procedures"]),
+    37: ("Design an Enterprise API Gateway", ["Routing, Authentication & Rate Limiting", "Service Discovery & Load Balancing Integration", "Service Mesh Architecture: Envoy & Istio Sidecars"]),
+    38: ("Design a Multiplayer Game Server", ["Real-Time State Synchronization & UDP Protocol", "Matchmaking Service & Queue Management", "Sharding Game Rooms & Latency Mitigation"]),
+    39: ("Design an Email System", ["Mail User Agent, Transfer Agent & Delivery Agent", "Storage Strategy for Millions of Emails (Metadata vs Body)", "Search Indexing & Real-Time Sync via IMAP/Websockets"]),
+    40: ("Design a Cloud Storage Service", ["File Chunking & Delta Sync (Block-level Updates)", "Metadata Sync Protocol & Client Architecture", "Conflict Resolution when Editing Files"]),
+    41: ("System Design Interview Blueprint", ["Requirement Clarification & API Definition", "High-Level Design & Component Selection", "Deep Dive, Scaling, Bottlenecks & Trade-offs"]),
+    42: ("API Schema Design & Evolution", ["Forward & Backward Compatibility in APIs", "Protobuf, Thrift & Avro Schema Formats", "Schema Registry & Version Control"]),
+    43: ("Design a Distributed Lock Manager", ["Locking with Redis (Redlock Algorithm)", "Consensus-Based Locking (ZooKeeper/etcd)", "Fencing Tokens for Avoiding Split-Brain/Stale Locks"]),
+    44: ("Design an Alerting System", ["Rule Engine for Event Evaluation", "Notification Aggregation, De-duplication & Routing", "Sliding Window Alert Conditions & Query Engine Integration"]),
+    45: ("Design a Global Ride-Hailing Platform", ["Unified Capstone: Scaling Geospatial Indices", "Real-Time Matching, Dynamic Pricing & Billing Integration", "Active-Active Multi-Region Data Replication & Disaster Recovery"]),
+}
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -239,11 +288,15 @@ Use a bold section header: "Agentic AI — Day {day}: {a_title}".
 Depth should be noticeably harder than Day {prev}."""
 
 
-def prompt_system_design(day, b_title):
+def prompt_system_design(day, sd_title, sd_topics):
+    sd_str = _fmt(sd_topics)
     prev = day - 1 if day > 1 else 1
     return f"""Generate the SYSTEM DESIGN section and BACKEND CODING CHALLENGE for Day {day} of 45 of a Backend & Agentic AI Bootcamp.
 
-Design a system that naturally relates to today's backend theme: {b_title}
+System Design Focus: {sd_title}
+
+Topics/Subtopics to cover:
+{sd_str}
 
 SYSTEM DESIGN — cover all of the following in order, in full detail:
 
@@ -265,8 +318,8 @@ SYSTEM DESIGN — cover all of the following in order, in full detail:
 16. 5 follow-up interview questions with the direction a strong answer would take
 
 
-Wrap the part (System Design) in its own white card div with inline styles.
-Use bold section headers: "System Design — Day {day} ".
+Wrap the entire System Design section in its own white card div with inline styles.
+Use a bold section header: "System Design — Day {day}: {sd_title}".
 Depth should be SLightly harder (in the sense from junior dev style to senior dev style) than Day {prev}."""
 
 # ---------------------------------------------------------------------------
@@ -344,7 +397,7 @@ def validate_final_html(html):
 # HTML assembly
 # ---------------------------------------------------------------------------
 
-def build_html(day, b_title, a_title, backend_html, ai_html, sysdesign_html):
+def build_html(day, b_title, a_title, sd_title, backend_html, ai_html, sysdesign_html):
     pct = round(day / TOTAL_DAYS * 100)
     progress_bar = (
         f'<div style="background:#e5e7eb;border-radius:6px;height:12px;margin:12px 0 4px 0;">'
@@ -360,6 +413,7 @@ def build_html(day, b_title, a_title, backend_html, ai_html, sysdesign_html):
       <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
         <span style="background:#eff6ff;color:#1e3a8a;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:700;">Backend: {b_title}</span>
         <span style="background:#f0fdf4;color:#166534;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:700;">AI: {a_title}</span>
+        <span style="background:#fff7ed;color:#c2410c;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:700;">System Design: {sd_title}</span>
       </div>
     </div>
     """
@@ -440,8 +494,9 @@ def main():
     day = CURRENT_DAY
     b_title, b_topics = BACKEND.get(day, ("Backend Review", ["Mixed review"]))
     a_title, a_topics = AI.get(day, ("AI Review", ["Mixed review"]))
+    sd_title, sd_topics = SYSTEM_DESIGN.get(day, ("System Design Review", ["Mixed review"]))
 
-    print(f"[generate] Day {day} — Backend: {b_title} | AI: {a_title}")
+    print(f"[generate] Day {day} — Backend: {b_title} | AI: {a_title} | System Design: {sd_title}")
     print("[generate] Making 3 API calls...")
 
     sections = {
@@ -455,13 +510,13 @@ def main():
         ),
         "sysdesign": require_section(
             "sysdesign",
-            call_deepseek(prompt_system_design(day, b_title), "sysdesign"),
+            call_deepseek(prompt_system_design(day, sd_title, sd_topics), "sysdesign"),
         ),
     }
     print("[generate] All 3 API calls completed. Building final newsletter...")
 
     html = build_html(
-        day, b_title, a_title,
+        day, b_title, a_title, sd_title,
         sections["backend"],
         sections["ai"],
         sections["sysdesign"],
