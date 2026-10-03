@@ -101,8 +101,8 @@ Runs automatically at **7:00 AM IST** every day (1:30 AM UTC via cron).
 
 - **Change recipient**: Update `TO_EMAIL` secret or edit the default in `send_email.py`
 - **Change schedule**: Edit the `cron` expression in `newsletter.yml`
-- **Change model**: Edit `"model": "deepseek-chat"` in `generate_newsletter.py` (e.g. `deepseek-reasoner` for R1)
-- **Adjust max tokens**: Change `"max_tokens": 8192` — DeepSeek supports up to 8192 on `deepseek-chat`
+- **Change model**: Edit `"model": "deepseek-v4-flash"` in `generate_newsletter.py` (or use another supported model such as `deepseek-v4-pro`)
+- **Adjust max tokens**: Change `"max_tokens": 8192` — verify your selected model's output-token limits in DeepSeek docs
 
 ---
 
