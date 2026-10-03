@@ -213,7 +213,7 @@ def call_deepseek(day: int, max_retries: int = 3) -> str:
         "Content-Type": "application/json",
     }
     payload = {
-        "model": "deepseek-chat",
+        "model": "deepseek-v4-flash",
         "messages": [
             {"role": "user", "content": build_prompt(day)},
         ],
